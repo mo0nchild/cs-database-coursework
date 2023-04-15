@@ -1,0 +1,14 @@
+{
+  "Logging": {
+    "ColorConsole": {
+      "LogLevelToColorMap": {
+        "Information": "DarkGreen",
+        "Warning": "Cyan",
+        "Error": "Red"
+      }
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=db_course_work;Username=postgres;Password=prolodgy778"
+  }
+}
