@@ -1,5 +1,6 @@
 namespace ClientApplication
 {
+    using Config = ClientApplication.Configurations;
     public sealed class Program : System.Object
     {
         public static void Main(string[] args)
@@ -9,10 +10,11 @@ namespace ClientApplication
 
             Console.ForegroundColor = ConsoleColor.White;
 
-            try { StartupBase.StartApplication<StartupApplication>(args); }
-            catch (StartupException error)
+            try { Config::StartupBase.StartApplication<Config::StartupApplication>(args).Wait(); }
+            catch (AggregateException error) when (error.InnerException is Config::StartupException)
             {
-                Console.WriteLine($"[{error.StartupType.Name}]: {error.Message}");
+                var startup_error = error.InnerException as Config::StartupException;
+                Console.WriteLine($"[{startup_error?.StartupType.Name}]: {error.Message}");
             }
         }
     }

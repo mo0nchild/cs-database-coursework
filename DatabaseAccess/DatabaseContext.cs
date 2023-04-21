@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using DatabaseAccess.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -10,10 +11,11 @@ namespace DatabaseAccess;
 using LoggerConfiguration = IOptionsMonitor<DatabaseLoggerConfiguration>;
 public partial class DatabaseContext : Microsoft.EntityFrameworkCore.DbContext
 {
-    public static ILoggerFactory DatabaseLoggerFactory = default!;
-    public DatabaseContext(LoggerConfiguration configuration) 
+    protected static ILoggerFactory DatabaseLoggerFactory = default(ILoggerFactory)!;
+    public DatabaseContext(LoggerConfiguration configuration)
         : base() { base.Database.EnsureCreated(); this.LoggerInitial(configuration); }
 
+    [ActivatorUtilitiesConstructorAttribute()]
     public DatabaseContext(DbContextOptions<DatabaseContext> options, LoggerConfiguration configuration) 
         : base(options) { base.Database.EnsureCreated(); this.LoggerInitial(configuration); }
 
@@ -43,13 +45,12 @@ public partial class DatabaseContext : Microsoft.EntityFrameworkCore.DbContext
                 .AddProvider(new DatabaseLoggerProvider(configuration));
         });
     }
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (optionsBuilder.IsConfigured) return;
+        optionsBuilder.UseLoggerFactory(DatabaseContext.DatabaseLoggerFactory);
+        if (optionsBuilder.IsConfigured == true) return;
 
         optionsBuilder.UseNpgsql("Server=localhost;Database=db_course_work;Username=postgres;Password=prolodgy778;");
-        optionsBuilder.UseLoggerFactory(DatabaseContext.DatabaseLoggerFactory);
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder) => this.OnModelCreatingPartial(modelBuilder);
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

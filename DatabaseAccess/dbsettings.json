@@ -1,14 +1,9 @@
 {
-  "Logging": {
-    "ColorConsole": {
-      "LogLevelToColorMap": {
-        "Information": "DarkGreen",
-        "Warning": "Cyan",
-        "Error": "Red"
-      }
-    }
-  },
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=db_course_work;Username=postgres;Password=prolodgy778"
-  }
+	"DatabaseLoggerConfiguration": {
+		"LogLevelColorMap": { "Information": "Green", "Warning": "Cyan", "Error": "Red" },
+		"FilePath": "database.log"
+	},
+	"ConnectionStrings": {
+		"DefaultConnection": "Server=localhost;Database=db_course_work;Username=postgres;Password=prolodgy778"
+	}
 }

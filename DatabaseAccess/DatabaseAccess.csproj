@@ -20,10 +20,12 @@
 
   <ItemGroup>
     <None Update="dbsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties dbsettings_1json__JsonSchema="https://json.schemastore.org/appsettings.json" /></VisualStudio></ProjectExtensions>
+  <ProjectExtensions>
+	  <VisualStudio><UserProperties dbsettings_1json__JsonSchema="https://json.schemastore.org/appsettings.json" /></VisualStudio>
+  </ProjectExtensions>
 
 </Project>

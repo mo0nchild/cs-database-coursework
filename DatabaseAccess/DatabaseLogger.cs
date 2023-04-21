@@ -19,11 +19,10 @@ namespace DatabaseAccess
             [LogLevel.Error] = ConsoleColor.DarkRed
         };
     }
-
     internal partial class DatabaseLoggerProvider : System.Object, ILoggerProvider
     {
         protected readonly System.IDisposable? _onChangeToken;
-        protected virtual DatabaseLoggerConfiguration Configuration { get; private set; } = default!;
+        protected virtual DatabaseLoggerConfiguration Configuration { get; private set; } = new();
         public DatabaseLoggerProvider(IOptionsMonitor<DatabaseLoggerConfiguration> config) : base() 
         {
             this.Configuration = config.CurrentValue;
@@ -49,13 +48,18 @@ namespace DatabaseAccess
             public async void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, 
                 Func<TState, Exception?, string> formatter)
             {
-                using (var file_writer = new StreamWriter(new FileStream(this.CurrentConfig().FilePath, FileMode.Append)))
+                var timestamp_value = string.Format("\n[DateTime]: [{0}]", DateTime.UtcNow);
+                Console.WriteLine(timestamp_value);
+
+                var filepath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, this.CurrentConfig().FilePath);
+                using (var file_writer = new StreamWriter(new FileStream(filepath, FileMode.Append)))
                 {
-                    await file_writer.WriteLineAsync(formatter(state, exception));
+                    await file_writer.WriteLineAsync(timestamp_value);
+                    await file_writer.WriteLineAsync($"{formatter(state, exception)}\n");
                 }
                 Console.ForegroundColor = this.CurrentConfig().LogLevelColorMap[logLevel];
-                Console.WriteLine(formatter(state, exception));
 
+                Console.WriteLine(formatter(state, exception));
                 Console.ForegroundColor = ConsoleColor.White; Console.WriteLine();
             }
         }

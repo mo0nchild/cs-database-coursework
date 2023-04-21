@@ -1,0 +1,59 @@
+﻿@using ClientApplication.ViewModels;
+@model AuthorizationModel;
+@{
+    this.ViewData["Title"] = "Login";
+    var registrationMode = AuthorizationModel.AuthorizationMode.Registration;
+    var loginMode = AuthorizationModel.AuthorizationMode.Login;
+
+    var genderList = new SelectList(new string[] { "Мужчина", "Женщина" });
+}
+
+@if(this.Model.HasError) { <p style="color: red;">@(this.Model.ErrorCause ?? "Неверные данные")</p> }
+
+<div class="auth-selection">
+    @this.Html.ActionLink("Авторизация", "Authorization", new AuthorizationModel { Mode = loginMode });
+    @this.Html.ActionLink("Регистрация", "Authorization", new AuthorizationModel { Mode = registrationMode });
+</div>
+
+@switch (this.Model.Mode)
+{
+    case AuthorizationModel.AuthorizationMode.Login:
+        @using(Html.BeginForm("Login", "Authorization", FormMethod.Post))
+        {
+            <p>
+                <label for="login">Логин</label> @this.Html.TextBox("login")
+            </p>
+            <p>
+                <label for="password">Пароль</label> @this.Html.TextBox("password")
+            </p>
+            <p>
+                <input type="submit" value="Войти" />
+            </p>
+        }
+        break;
+    case AuthorizationModel.AuthorizationMode.Registration:
+        @using(Html.BeginForm("Registration", "Authorization", FormMethod.Post))
+        {
+            <p>
+                <label for="login">Логин</label> @this.Html.TextBox("login")
+                <label for="password">Пароль</label> @this.Html.TextBox("password")
+            </p>
+            <p>
+                <label for="surname">Фамилия</label> @this.Html.TextBox("surname")
+                <label for="name">Имя</label> @this.Html.TextBox("name")
+                <label for="patronymic">Отчество</label> @this.Html.TextBox("patronymic")
+            </p>
+            <p>
+                <label for="login">Телефон</label> @this.Html.TextBox("phone")
+                <label for="email">Email</label> @this.Html.TextBox("email")
+            </p>
+            <p>
+                <label for="birthday">День рождения</label> <input id="birthday" type="date" name="birthday" />
+                <label for="gender">Пол</label> @this.Html.DropDownList("gender", genderList)
+            </p>
+            <p>
+                <input type="submit" value="Регистрация" />
+            </p>
+        }
+        break;
+}
