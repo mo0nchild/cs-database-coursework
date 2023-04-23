@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace ClientApplication.Configurations
 {
@@ -15,11 +18,14 @@ namespace ClientApplication.Configurations
         }
         protected override void ConfigureServices(IServiceCollection services)
         {
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(
-                (options) => { options.LoginPath = "/authorization"; options.AccessDeniedPath = "/authorization"; }
-            );
+            services.AddRazorPages(); services.AddServerSideBlazor(); services.AddHttpClient();
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie((options) => 
+            {
+                options.AccessDeniedPath = new PathString("/authorization"); 
+                options.LoginPath = new PathString("/authorization"); 
+            });
             services.Configure<DatabaseLoggerConfiguration>(Configuration.GetSection("DatabaseLoggerConfiguration"));
-            services.AddAuthorization((options) =>
+            services.AddAuthorization((AuthorizationOptions options) =>
             {
                 options.AddPolicy("Administrator", policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
                 options.AddPolicy("DefaultUser", policy => policy.RequireClaim(ClaimTypes.Role, "User"));
@@ -36,14 +42,16 @@ namespace ClientApplication.Configurations
         }
         protected override void ConfigureApplication(WebApplication application, IWebHostEnvironment env)
         {
-            application.UseRouting().UseAuthentication().UseAuthorization();
             application.Map("/", (HttpContext context) => Results.RedirectToRoute("profile"));
+            application.UseStaticFiles();
+            application.UseRouting().UseAuthentication().UseAuthorization();
 
             application.UseEndpoints((IEndpointRouteBuilder route_builder) => 
             {
                 route_builder.MapControllers();
                 route_builder.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
+            application.MapBlazorHub();
         }
     }
 }

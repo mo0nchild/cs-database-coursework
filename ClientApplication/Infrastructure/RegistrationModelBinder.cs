@@ -38,11 +38,11 @@ namespace ClientApplication.Infrastructure
             };
             foreach(KeyValuePair<string, ValueProviderResult> item in modelValues)
             {
-                if (item.Value == ValueProviderResult.None) return this.FallbackBinder.BindModelAsync(bindingContext);
+                if (item.Value == ValueProviderResult.None) bindingContext.Result = ModelBindingResult.Failed();
             }
             if (!DateTime.TryParse(modelValues["birthday"].FirstValue, out var birthdayValue))
             {
-                bindingContext.Result = ModelBindingResult.Failed();
+                return this.FallbackBinder.BindModelAsync(bindingContext);
             }
             bindingContext.Result = ModelBindingResult.Success(new DAModels::Contact()
             {

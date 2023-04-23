@@ -7,19 +7,18 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ClientApplication.styles.css" asp-append-version="true" />
+    <base href="~/"/> 
 </head>
 <body>
-    <header>
-        
+    <header style="background-color: #6418C3; color: white;">
+        <p>Contact App</p>
+        <div> @await RenderSectionAsync("PageTabs", required: false) </div>
+        <div> @await RenderSectionAsync("Supports", required: false) </div>
     </header>
     <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+        <main role="main" class="pb-3"> @RenderBody() </main>
     </div>
-
     <footer class="border-top footer text-muted">
-        
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

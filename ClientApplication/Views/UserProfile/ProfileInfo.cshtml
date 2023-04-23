@@ -1,0 +1,23 @@
+﻿@using ClientApplication.Views.UserProfile;
+@model DatabaseAccess.Models.Contact;
+@{
+    this.ViewBag.Title = "Profile";
+}
+<component type="typeof(ProfilePage)" render-mode="ServerPrerendered" param-Contact="this.Model"/>
+
+@section Scripts {
+    <script src="/_framework/blazor.server.js"></script>
+}
+@section PageTabs {
+    <ul class="nav nav-pills">
+        <li class="nav-item">
+            <a class="nav-link" aria-current="page" href="#">Контакты</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" aria-current="page" href="#">Профиль</a>
+        </li>
+    </ul>
+}
+@section Supports {
+    <a class="btn btn-danger" href="~/logout" role="button">Выйти</a>
+}

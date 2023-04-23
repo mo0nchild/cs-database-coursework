@@ -39,7 +39,7 @@ namespace ClientApplication.Controllers
         {
             this._logger.LogInformation($"Login: {login}; Password: {password}");
             DAModels::Authorization? userProfile = default;
-            using (var dbcontext = this.DatabaseFactory.CreateDbContext())
+            using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
             {
                 userProfile = dbcontext.Authorizations.Include((item) => item.Contact)
                     .Where((item) => item.Login == login && item.Password == password).FirstOrDefault();
@@ -54,7 +54,7 @@ namespace ClientApplication.Controllers
             CookieAuthenticationDefaults.AuthenticationScheme);
 
             await this.HttpContext.SignInAsync(new ClaimsPrincipal(profilePrinciple));
-            return base.RedirectToAction("DetailsInfo", "UserProfile");
+            return base.RedirectToAction("ProfileInfo", "UserProfile");
         }
 
         [RouteAttribute("registration", Name = "registration")]
@@ -75,7 +75,7 @@ namespace ClientApplication.Controllers
                 return base.View("Authorization", routeModel);
             }
             DAModels::Authorization authorization = profile.Authorization!;
-            using (var dbcontext = this.DatabaseFactory.CreateDbContext())
+            using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
             {
                 profile.Gendertype = (await dbcontext.Gendertypes.Where((DAModels::Gendertype item) 
                     => item.Gendertypename == profile.Gendertype.Gendertypename).FirstOrDefaultAsync())!;
@@ -100,7 +100,7 @@ namespace ClientApplication.Controllers
             this._logger.LogInformation($"Account was registered: {authorization.Login}");
 
             await this.HttpContext.SignInAsync(new ClaimsPrincipal(profile_principle));
-            return base.RedirectToAction("DetailsInfo", "UserProfile");
+            return base.RedirectToAction("ProfileInfo", "UserProfile");
         }
 
         [RouteAttribute("logout", Name = "logout")]
