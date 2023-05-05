@@ -13,6 +13,9 @@ namespace ClientApplication.Controllers
 {
     using DAModels = DatabaseAccess.Models;
     using ControllerLogger = ILogger<AuthorizationController>;
+
+    using static ClientApplication.ViewModels.AuthorizationModel;
+
     [ControllerAttribute]
     public partial class AuthorizationController : Controller
     {
@@ -24,17 +27,19 @@ namespace ClientApplication.Controllers
 
         [RouteAttribute("authorization", Name = "authorization")]
         [HttpGetAttribute]
-        public IActionResult Authorization(ViewModels.AuthorizationModel? authorizationModel)
+        public async Task<IActionResult> Authorization(ViewModels.AuthorizationModel? model)
         {
+            using var dbcontext = await this.DatabaseFactory.CreateDbContextAsync();
+            this.ViewBag.GenderTypes = dbcontext.Gendertypes.Select(item => item.Gendertypename).ToList();
+
             if (this.HttpContext.User.Identity != null && this.HttpContext.User.Identity.IsAuthenticated)
             {
                 return base.LocalRedirect("/user/profile");
             }
-            return base.View(authorizationModel ?? new ViewModels.AuthorizationModel());
+            return base.View(model ?? new ViewModels.AuthorizationModel());
         }
 
-        [RouteAttribute("login", Name = "login")]
-        [HttpPostAttribute]
+        [RouteAttribute("login", Name = "login"), HttpPostAttribute]
         public async Task<IActionResult> Login([FromForm]string login, [FromForm]string password)
         {
             this._logger.LogInformation($"Login: {login}; Password: {password}");
@@ -44,7 +49,8 @@ namespace ClientApplication.Controllers
                 userProfile = dbcontext.Authorizations.Include((item) => item.Contact)
                     .Where((item) => item.Login == login && item.Password == password).FirstOrDefault();
 
-                if (userProfile == null) return base.View("Authorization", new ViewModels.AuthorizationModel(true));
+                if (userProfile == null) return base.RedirectToRoute("authorization", new RouteValueDictionary()
+                { ["haserror"] = true, ["mode"] = AuthorizationMode.Login, ["errorcause"] = "" });
             }
             var profilePrinciple = new ClaimsIdentity(new List<Claim>()
             {
@@ -56,39 +62,67 @@ namespace ClientApplication.Controllers
             await this.HttpContext.SignInAsync(new ClaimsPrincipal(profilePrinciple));
             return base.RedirectToAction("ProfileInfo", "UserProfile");
         }
-
-        [RouteAttribute("registration", Name = "registration")]
-        [HttpPostAttribute]
-        public async Task<IActionResult> Registration([FromForm] DAModels::Contact profile)
+        private AuthorizationModel? ValidateModel(DAModels::Authorization auth, DAModels::Contact user)
         {
-            var emailMatch = Regex.IsMatch(profile.Emailaddress, @"^\w+@(mail|gmail|yandex){1}.(ru|com){1}$");
-            var phoneMatch = Regex.IsMatch(profile.Phonenumber!, @"^\+7[0-9]{1}$");
-
-            profile.Phonenumber = (profile.Phonenumber == string.Empty) ? null! : profile.Phonenumber;
-            if (!emailMatch || (!phoneMatch && profile.Phonenumber != null))
+            foreach (var propertyValue in new[] { auth.Login, auth.Password, user.Surname, user.Name })
             {
-                var routeModel = new ViewModels.AuthorizationModel(true)
+                if (propertyValue != null && Regex.IsMatch(propertyValue, @"[А-Яа-я\w]{5,}")) continue;
+                return new ViewModels.AuthorizationModel(true)
+                {
+                    ErrorCause = @$"Данные неверно введены{(propertyValue == null ? "" : $": {propertyValue}")}",
+                    Mode = ViewModels.AuthorizationModel.AuthorizationMode.Registration
+                };
+            }
+            var emailMatch = Regex.IsMatch(user.Emailaddress, @"^\w{6,}@(mail|gmail|yandex){1}.(ru|com){1}$");
+            var phoneMatch = Regex.IsMatch(user.Phonenumber!, @"^\+7[0-9]{10}$");
+
+            user.Phonenumber = (user.Phonenumber == string.Empty) ? null! : user.Phonenumber;
+            if (!emailMatch || (!phoneMatch && user.Phonenumber != null))
+            {
+                return new ViewModels.AuthorizationModel(true)
                 {
                     ErrorCause = (!emailMatch ? "Неверный адрес почты" : (!phoneMatch ? "Неверный телефон" : null)),
                     Mode = ViewModels.AuthorizationModel.AuthorizationMode.Registration,
                 };
-                return base.View("Authorization", routeModel);
             }
-            DAModels::Authorization authorization = profile.Authorization!;
+            return default(AuthorizationModel);
+        }
+        [RouteAttribute("registration", Name = "registration")]
+        [HttpPostAttribute]
+        public async Task<IActionResult> Registration([FromForm] DAModels::Contact profile,
+            [FromForm, Bind("Login", "Password")] DAModels::Authorization authorization)
+        {
+            if (profile is null) return base.RedirectToAction("Authorization", new RouteValueDictionary()
+            {["haserror"] = true, ["mode"] = AuthorizationMode.Registration, ["errorcause"] = "Данные не установлены"});
+
+            var modelValidation = this.ValidateModel(authorization, profile);
+            if (modelValidation != null) return base.RedirectToAction("Authorization", new RouteValueDictionary()
+            { 
+                ["haserror"] = modelValidation.HasError, ["mode"] = modelValidation.Mode, 
+                ["errorcause"] = modelValidation.ErrorCause 
+            });
+            var referenceCollision = default(int) + 1;
             using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
             {
                 profile.Gendertype = (await dbcontext.Gendertypes.Where((DAModels::Gendertype item) 
                     => item.Gendertypename == profile.Gendertype.Gendertypename).FirstOrDefaultAsync())!;
 
+                profile.Userpicture = await dbcontext.Userpictures.FirstAsync();
+                while (referenceCollision != 0) 
+                {
+                    authorization!.Referenceguid = Guid.NewGuid().ToString();
+
+                    referenceCollision = dbcontext.Authorizations.Where(
+                        (DAModels::Authorization item) => item.Referenceguid == authorization.Referenceguid).Count();
+                }
                 profile.Authorization = default(DAModels::Authorization);
                 await dbcontext.Contacts.AddAsync(authorization.Contact = profile);
 
                 await dbcontext.Authorizations.AddAsync(authorization);
                 try { await dbcontext.SaveChangesAsync(); } catch (System.Exception error)
- {
-                    var errorModel = new ViewModels.AuthorizationModel(true) 
-                    {  ErrorCause = error.Message, Mode = AuthorizationModel.AuthorizationMode.Registration };
-                    return base.View("Authorization", errorModel); 
+                {
+                    return base.RedirectToAction("Authorization", new RouteValueDictionary()
+                    { ["haserror"] = true, ["mode"] = AuthorizationMode.Registration, ["errorcause"] = error.Message }); 
                 }
             }
             var profile_principle = new ClaimsIdentity(new List<Claim>()
@@ -103,8 +137,7 @@ namespace ClientApplication.Controllers
             return base.RedirectToAction("ProfileInfo", "UserProfile");
         }
 
-        [RouteAttribute("logout", Name = "logout")]
-        [HttpGetAttribute()]
+        [RouteAttribute("logout", Name = "logout"), HttpGetAttribute]
         public async Task<IActionResult> Logout()
         {
             await this.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);

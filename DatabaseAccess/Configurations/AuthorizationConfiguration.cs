@@ -14,11 +14,11 @@ namespace DatabaseAccess.Configurations
         public virtual void Configure(EntityTypeBuilder<Models.Authorization> entity_builder)
         {
             entity_builder.HasKey(e => e.Authorizationid).HasName("authorization_pkey");
-
             entity_builder.ToTable("authorization");
 
             entity_builder.HasIndex(e => e.Contactid, "authorization_contactid_key").IsUnique();
             entity_builder.HasIndex(e => e.Login, "authorization_login_key").IsUnique();
+            entity_builder.HasIndex(e => e.Referenceguid, "authorization_referenceguid_key").IsUnique();
 
             entity_builder.Property(e => e.Authorizationid).HasColumnName("authorizationid");
             entity_builder.Property(e => e.Contactid).HasColumnName("contactid");
@@ -29,9 +29,12 @@ namespace DatabaseAccess.Configurations
             entity_builder.Property(e => e.Password)
                 .HasMaxLength(30)
                 .HasColumnName("password");
+            entity_builder.Property(e => e.Referenceguid)
+                .HasMaxLength(40)
+                .HasColumnName("referenceguid");
 
             entity_builder.HasOne(d => d.Contact).WithOne(p => p.Authorization)
-                .HasForeignKey<Models.Authorization>(d => d.Contactid)
+                .HasForeignKey<DatabaseAccess.Models.Authorization>(d => d.Contactid)
                 .HasConstraintName("authorization_contactid_fkey");
         }
     }

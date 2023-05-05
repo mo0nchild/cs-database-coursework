@@ -7,6 +7,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
+using Microsoft.Extensions.FileProviders;
 
 namespace ClientApplication.Configurations
 {
@@ -32,7 +33,7 @@ namespace ClientApplication.Configurations
             });
             services.AddControllersWithViews((MvcOptions options) =>
             {
-                options.ModelBinderProviders.Insert(0, new RegistrationModelBinder.RegistrationModelBinderProvider());
+                options.ModelBinderProviders.Insert(0, new ContractModelBinder.ContractModelBinderProvider());
             });
             services.AddDbContextFactory<DatabaseContext>((options) =>
             {
@@ -44,6 +45,11 @@ namespace ClientApplication.Configurations
         {
             application.Map("/", (HttpContext context) => Results.RedirectToRoute("profile"));
             application.UseStaticFiles();
+            application.UseStaticFiles(new StaticFileOptions() // обрабатывает запросы к каталогу wwwroot/html
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Icons")),
+                RequestPath = new PathString("/Icons")
+            });
             application.UseRouting().UseAuthentication().UseAuthorization();
 
             application.UseEndpoints((IEndpointRouteBuilder route_builder) => 

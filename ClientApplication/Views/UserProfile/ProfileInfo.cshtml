@@ -1,9 +1,10 @@
-﻿@using ClientApplication.Views.UserProfile;
+﻿@using ClientApplication.Views.Shared;
 @model DatabaseAccess.Models.Contact;
 @{
     this.ViewBag.Title = "Profile";
 }
-<component type="typeof(ProfilePage)" render-mode="ServerPrerendered" param-Contact="this.Model"/>
+<component type="typeof(ProfilePage)" render-mode="ServerPrerendered" param-Contact="this.Model"
+    param-EditingModel="this.ViewBag.EditingModel"/>
 
 @section Scripts {
     <script src="/_framework/blazor.server.js"></script>

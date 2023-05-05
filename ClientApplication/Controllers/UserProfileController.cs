@@ -24,17 +24,31 @@ namespace ClientApplication.Controllers
         public async Task<IActionResult> ProfileInfo()
         {
             var authorizatedProfile = this.HttpContext.User.FindFirst(ClaimTypes.PrimarySid)!;
+            this.ViewBag.EditingModel = new ProfileEditingModel();
+
             DAModels::Contact profileModel = default!;
             using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
             {
                 profileModel = await dbcontext.Contacts.Include(prop => prop.Gendertype)
                     .Include(prop => prop.Location).ThenInclude(prop => prop!.City)
-                    .Include(prop => prop.Employees)
+                    .Include(prop => prop.Employees).ThenInclude(prop => prop!.Post)
+                    .Include(prop => prop.Userpicture)
+                    .Include(prop => prop.Humanqualities).Include(prop => prop.Hobbies)
                     .Where(item => item.Contactid == int.Parse(authorizatedProfile.Value)).FirstAsync();
+
+                this.ViewBag.EditingModel.GenderTypes = await dbcontext.Gendertypes.ToListAsync();
+                this.ViewBag.EditingModel.Cities = await dbcontext.Cities.ToListAsync();
+                this.ViewBag.EditingModel.Pictures = await dbcontext.Userpictures.ToListAsync();
+                this.ViewBag.EditingModel.QualityTypes = await dbcontext.Humanqualities.ToListAsync();
+                this.ViewBag.EditingModel.HobbyTypes = await dbcontext.Hobbies.ToListAsync();
             }
-            var modelSerialize = JsonConvert.SerializeObject(profileModel,
+            string viewbagSerialize = JsonConvert.SerializeObject(this.ViewBag.EditingModel,
                  new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
 
+            string modelSerialize = JsonConvert.SerializeObject(profileModel,
+                 new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+
+            this.ViewBag.EditingModel = JsonConvert.DeserializeObject<ProfileEditingModel>(viewbagSerialize);
             return base.View(JsonConvert.DeserializeObject<DAModels::Contact>(modelSerialize));
         }
 
@@ -44,22 +58,5 @@ namespace ClientApplication.Controllers
             await Console.Out.WriteLineAsync(name);
             return base.RedirectToAction("ProfileInfo", "UserProfile");
         }
-
-        //[HttpGetAttribute, RouteAttribute("loadContacts", Name = "profile")]
-        //[AuthorizeAttribute(Policy = "DefaultUser")]
-        //public async Task<IActionResult> GetContactsList([FromRoute]ContactInfoModel.PageDisplay pageDisplay)
-        //{
-        //    var profileContacts = new List<DAModels::Contact>();
-        //    using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
-        //    {
-        //        var pagesCount = Math.Ceiling(dbcontext.Contacts.Count() / (double)pageDisplay.ItemAmount);
-        //        var selectedItems = dbcontext.Contacts
-        //            .Skip(pageDisplay.ItemAmount * pageDisplay.PageAmount)
-        //            .Take(pageDisplay.ItemAmount);
-        //        foreach (var item in await selectedItems.ToListAsync()) profileContacts.Add(item);
-        //    }
-        //    return base.RedirectToAction("DetailsInfo", new ContactInfoModel()
-        //    { Contacts = profileContacts, PageDiplay = pageDisplay });
-        //}
     }
 }

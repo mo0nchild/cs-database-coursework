@@ -1,0 +1,113 @@
+﻿@using DAModels = DatabaseAccess.Models;
+@using Microsoft.AspNetCore.Components.Forms;
+@using Microsoft.AspNetCore.Components.Web;
+@using ViewModels;
+@using ClientApplication.Views.Shared.Components;
+
+@inject NavigationManager NavigationManager
+@inject ILogger<ProfilePage> Logger
+@inject IHttpClientFactory HttpFactory
+
+<ul class="nav nav-pills">
+    <li class="nav-item">
+        <button class="btn btn-outline-primary" 
+            @onclick="@(() => this.SelectedTab = SelectedTabType.Details)">Детальная информация</button>
+    </li>
+    <li class="nav-item">
+        <button class="btn btn-outline-secondary" 
+            @onclick="@(() => this.SelectedTab = SelectedTabType.EmployeeLocation)">Работа/Местоположение</button>
+    </li>
+    <li class="nav-item">
+        <button class="btn btn-outline-secondary" 
+            @onclick="@(() => this.SelectedTab = SelectedTabType.QualityHobby)">Хобби/Качества</button>
+    </li>
+</ul>
+
+<div class="container">
+    @switch(this.SelectedTab)
+    {
+    case SelectedTabType.Details:
+    <div class="row">
+        <TextField TItem="string" ItemId="contact-surname" LabelTitle="Фамилия" ComponentValue="this.Contact.Surname"
+            BindValueChange="(value) => this.Contact.Surname = value"/>
+        <TextField TItem="string" ItemId="contact-name" LabelTitle="Имя" ComponentValue="this.Contact.Name"
+            BindValueChange="(value) => this.Contact.Name = value"/>
+        <TextField TItem="string" ItemId="contact-patronymic" LabelTitle="Отчество" ComponentValue="this.Contact.Patronymic"
+            BindValueChange="(value) => this.Contact.Patronymic = value"/>
+    </div>
+    <div class="row">
+        <TextField TItem="string" ItemId="contact-phone" LabelTitle="Телефон" ComponentValue="this.Contact.Phonenumber"
+            BindValueChange="(value) => this.Contact.Phonenumber = value"/>
+        <TextField TItem="string" ItemId="contact-email" LabelTitle="Email" ComponentValue="this.Contact.Emailaddress"
+            BindValueChange="(value) => this.Contact.Emailaddress = value"/>
+        <div class="col-4 gx-4">
+            <label for="contact-gender" class="form-label">Gender:</label>
+            <div class="input-group mb-3">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" 
+                    aria-expanded="false" id="contact-gender">@this.Contact.Gendertype.Gendertypename</button>
+                <ul class="dropdown-menu">
+                @foreach(var item in this.EditingModel.GenderTypes)
+                { <li><a class="dropdown-item" @onclick="@(() => this.Contact.Gendertype = item)">@item.Gendertypename</a></li> }
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4 gx-4">
+            <label for="contact-family" class="form-label">Семейный статус:</label>
+            <div class="input-group mb-3">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" 
+                    aria-expanded="false" id="contact-family">@this.Contact.Familystatus</button>
+                <ul class="dropdown-menu">
+                @foreach(var item in new string[] { "В браке", "В поиске", "Холост", "Все сложно", "Не указывать" })
+                { <li><a class="dropdown-item" @onclick="@(() => this.Contact.Familystatus = item)">@item</a></li> }
+                </ul>
+            </div>
+        </div>
+        <div class="col-4 gx-4">
+            <label for="contact-birthday" class="form-label">Дата рождения:</label>
+            <div class="input-group mb-3">
+                <input id="contact-birthday" type="date" name="birthday" @bind-value="@this.Contact.Birthday"/>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <label for="user-picture" class="form-label">Аватарка:</label>
+        <div class="col-4 gx-4" id="user-picture">
+            <select class="form-select" size="3" aria-label="size 3 select example" @onchange="@(this.UserPictureChangeHandler)">
+            @foreach(var item in this.EditingModel.Pictures) { <option value="@item.Filepath">@item.Picturename</option> }
+            </select>
+        </div>
+        <div class="col-4 gx-4">
+            <img src="@(this.Contact.Userpicture?.Filepath)" class="rounded img-thumbnail" 
+                style="width:100px;height:100px;">
+        </div>
+            </div>
+        break;
+    case SelectedTabType.EmployeeLocation:
+        
+        break;
+    case SelectedTabType.QualityHobby:
+        
+        break;
+    }   
+</div>
+
+<form method="post" action="user/profile">
+    <input type="hidden" name="name" value="@this.Contact.Name"/>
+    <input type="submit" value="Сохранить" @onclick="()=>{ Console.WriteLine(this.Contact.Name); }"/>
+</form>
+
+@code {
+    [ParameterAttribute] public DAModels::Contact Contact { get; set; } = default!;
+    [ParameterAttribute] public ProfileEditingModel EditingModel { get; set; } = default!;
+
+    public enum SelectedTabType : sbyte { Details, EmployeeLocation, QualityHobby  }
+    public SelectedTabType SelectedTab { get; set; } = default;
+
+    protected virtual void UserPictureChangeHandler(ChangeEventArgs args)
+    {
+        this.Contact.Userpicture = new DAModels::Userpicture() { Filepath = args.Value?.ToString() ?? "" };
+        this.Logger.LogInformation($"Picture: {args.Value?.ToString()}");
+    }
+}

@@ -1,0 +1,27 @@
+﻿@using Microsoft.AspNetCore.Components.Forms;
+@using Microsoft.AspNetCore.Components.Web;
+@typeparam TItem
+
+<div class="col-4 gx-4">
+    <label for="@this.ItemId" class="form-label">@this.LabelTitle</label>
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="@this.ItemId" @bind-value="@this.ComponentValue"/>
+    </div>
+</div>
+
+@code {
+    [ParameterAttribute] public string LabelTitle { get; set; } = string.Empty;
+    [ParameterAttribute] public string ItemId { get; set; } = string.Empty;
+
+    [ParameterAttribute, EditorRequiredAttribute]
+    public TItem ComponentValue { get; set; } = default!;
+
+    [ParameterAttribute, EditorRequiredAttribute]
+    public Func<TItem, TItem> BindValueChange { get; set; } = default!;
+
+    public TItem BindValueAccess
+    {
+        set { this.ComponentValue = value; this.BindValueChange.Invoke(value); }
+        get { return this.ComponentValue; }
+    }
+}

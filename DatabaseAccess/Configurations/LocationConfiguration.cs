@@ -14,18 +14,14 @@ namespace DatabaseAccess.Configurations
         public virtual void Configure(EntityTypeBuilder<Models.Location> entity_builder)
         {
             entity_builder.HasKey(e => e.Locationid).HasName("location_pkey");
-
             entity_builder.ToTable("location");
-
             entity_builder.HasIndex(e => e.Street, "location_street_key").IsUnique();
 
             entity_builder.Property(e => e.Locationid).HasColumnName("locationid");
             entity_builder.Property(e => e.Cityid).HasColumnName("cityid");
-            entity_builder.Property(e => e.Index)
-                .HasMaxLength(10)
-                .HasDefaultValueSql("NULL::character varying");
             entity_builder.Property(e => e.Street)
                 .HasMaxLength(50)
+                .HasDefaultValueSql("NULL::character varying")
                 .HasColumnName("street");
 
             entity_builder.HasOne(d => d.City).WithMany(p => p.Locations)
