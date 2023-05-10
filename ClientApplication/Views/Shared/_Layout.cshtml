@@ -4,21 +4,58 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ClientApplication.styles.css" asp-append-version="true" />
     <base href="~/"/> 
+    @await RenderSectionAsync("Style", required: false)
 </head>
 <body>
-    <header style="background-color: #6418C3; color: white;">
-        <p>Contact App</p>
-        <div> @await RenderSectionAsync("PageTabs", required: false) </div>
-        <div> @await RenderSectionAsync("Supports", required: false) </div>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3"> @RenderBody() </main>
+    <nav class="navbar navbar-expand-md fixed-top border border-bottom border-secondary 
+        shadow py-2 bg-body-tertiary" style="background-color:var(--main-color);">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand p-0 d-inline-flex text-light" href="#">
+               
+                <img src="/icons/logo.png" alt="Logo" width="48" height="48" class="me-1 d-inline-block align-text-top"/>
+                <i class="align-self-center fs-5 text-decoration-none">ContactApp</i>
+            </a>
+            <button class="navbar-toggler border border-2" type="button" style="outline:none;box-shadow:none;" 
+                data-bs-toggle="collapse" data-bs-target="#navbar-dropdown" >
+                <span class="text-light fs-2 bi bi-list"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end px-2" id="navbar-dropdown">
+                @await RenderSectionAsync("Supports")
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-5" style="flex-grow: 1;">
+        <main role="main" class="mb-3 mb-sm-3 h-100"> @RenderBody() </main>
     </div>
-    <footer class="border-top footer text-muted">
+    <footer class="text-center text-white mt-sm-2 mt-2" id="page-footer">
+        <div class="container p-4 pb-0">
+            <section class="mb-4">
+                <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button">
+                    <i class="fs-5 bi bi-telegram text-light"></i>
+                </a>
+                <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button">
+                    <i class="fs-5 bi bi-youtube text-light"></i>
+                </a>
+                <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button">
+                    <i class="fs-5 bi bi-facebook text-light"></i>
+                </a>
+                <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button">
+                    <i class="fs-5 bi bi-discord text-light"></i>
+                </a>
+                <a class="btn btn-outline-light btn-floating m-1" href="https://github.com/mo0nchild" role="button">
+                    <i class="fs-5 bi bi-github text-light"></i>
+                </a>
+            </section>
+        </div>
+        <div class="text-center fs-6 p-3" style="background-color:var(--secondary-color);">
+            © 2023 Copyright:
+            <a class="text-white" href="#!">ContactApp.com</a>
+        </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

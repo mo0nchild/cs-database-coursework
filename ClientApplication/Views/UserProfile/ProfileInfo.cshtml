@@ -1,24 +1,36 @@
 ﻿@using ClientApplication.Views.Shared;
-@model DatabaseAccess.Models.Contact;
+@model ClientApplication.ViewModels.UserProfileModel;
 @{
-    this.ViewBag.Title = "Profile";
-}
-<component type="typeof(ProfilePage)" render-mode="ServerPrerendered" param-Contact="this.Model"
-    param-EditingModel="this.ViewBag.EditingModel"/>
+    this.ViewBag.Title = this.Model.Contact.Authorization!.Login;
+    const string underlineClass = "border-bottom border-3";
 
+    const UserProfileModel.PageMode contactMode = UserProfileModel.PageMode.Contacts;
+    const UserProfileModel.PageMode settingsMode = UserProfileModel.PageMode.Settings;
+}
+@switch(this.Model.Mode)
+{
+    case UserProfileModel.PageMode.Settings:
+    <component type="typeof(ProfilePage)" render-mode="ServerPrerendered" param-Contact="this.Model.Contact"
+        param-EditingModel="this.ViewBag.EditingModel"/>
+        break;
+    case UserProfileModel.PageMode.Contacts:
+        break;
+}
 @section Scripts {
     <script src="/_framework/blazor.server.js"></script>
 }
-@section PageTabs {
-    <ul class="nav nav-pills">
-        <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="#">Контакты</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="#">Профиль</a>
-        </li>
-    </ul>
-}
 @section Supports {
-    <a class="btn btn-danger" href="~/logout" role="button">Выйти</a>
+<ul class="navbar-nav my-3 my-sm-0 my-lg-0 navbar-nav-scroll" 
+    style="--bs-scroll-height:84px;font-size:13pt;"> 
+    <li class="nav-item">
+        @this.Html.ActionLink("Контакты", "ProfileInfo", new UserProfileModel { Mode = contactMode },
+            new { @class=$"nav-link text-light {(this.Model.Mode == contactMode ? underlineClass : "")}" })
+    </li>
+    <li class="nav-item">
+        @this.Html.ActionLink("Профиль", "ProfileInfo", new UserProfileModel { Mode = settingsMode },
+            new { @class=$"nav-link text-light {(this.Model.Mode == settingsMode ? underlineClass : "")}" })
+    </li>
+</ul>
+<div class="vr mx-3 bg-white opacity-75 d-none d-md-block" style="width:2px;"></div>
+<a class="btn btn-outline-danger d-flex my-2 my-md-0 mb-3 mb-md-0" href="~/logout" role="button">Выйти</a>
 }

@@ -14,5 +14,35 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+    --main-color: #702CF1;
+    --secondary-color: #5717A7;
+    height: 100vh;
+    width: 100vw;
+
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#page-footer {
+    margin-top: auto;
+    /*position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;*/
+    box-shadow: 0px 0px 20px #888;
+    background-color: var(--main-color);
+}
+
+::-webkit-scrollbar {
+    width: .45rem;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
 }

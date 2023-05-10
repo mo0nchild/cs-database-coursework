@@ -1,52 +1,200 @@
 ﻿@using ClientApplication.ViewModels;
 @model AuthorizationModel;
 @{
+    const string underlineClass = "border-bottom border-3";
+
     var genderList = new SelectList(this.ViewBag.GenderTypes);
     var familyStatusList = new SelectList(new string[] { "В браке", "В поиске", "Холост", "Все сложно", "Не указывать" });
-    this.ViewData["Title"] = "Login";
+    this.ViewData["Title"] = "Главная";
 
     var registrationMode = AuthorizationModel.AuthorizationMode.Registration;
     var loginMode = AuthorizationModel.AuthorizationMode.Login;
 }
-@if(this.Model.HasError) { <p style="color: red;">@(this.Model.ErrorCause ?? "Неверные данные")</p> }
+@section Supports {
+<ul class="navbar-nav my-3 my-sm-0 my-lg-0 navbar-nav-scroll" 
+    style="--bs-scroll-height:84px;font-size:13pt;"> 
+    <li class="nav-item">
+        @this.Html.ActionLink("Регистрация", "Authorization", new AuthorizationModel { Mode = registrationMode },
+            new { @class=$"nav-link text-light {(this.Model.Mode == registrationMode ? underlineClass : "")}" })
+    </li>
+    <li class="nav-item">
+        @this.Html.ActionLink("Авторизация", "Authorization", new AuthorizationModel { Mode = loginMode },
+            new { @class=$"nav-link text-light {(this.Model.Mode == loginMode ? underlineClass : "")}" })
+    </li>
+</ul>
+<div class="vr mx-3 bg-white opacity-75 d-none d-md-block" style="width:2px;"></div>
 
-<div class="auth-selection">
-    @this.Html.ActionLink("Авторизация", "Authorization", new AuthorizationModel { Mode = loginMode });
-    @this.Html.ActionLink("Регистрация", "Authorization", new AuthorizationModel { Mode = registrationMode });
-</div>
-
+<form class="d-flex my-2 my-md-0 mb-3 mb-md-0" role="search">
+    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+    <button class="btn btn-outline-light" type="submit">Поиск</button>
+</form>
+}
+<div class="container p-0 my-5">
 @switch (this.Model.Mode)
 {
     case AuthorizationModel.AuthorizationMode.Login:
-        @using(Html.BeginForm("Login", "Authorization", FormMethod.Post))
-        {
-            <p> <label for="login">Логин</label> @this.Html.TextBox("login") </p>
-            <p> <label for="password">Пароль</label> @this.Html.TextBox("password") </p>
-            <p> <input type="submit" value="Войти"/> </p>
-        }
+    @using(Html.BeginForm("Login", "Authorization", FormMethod.Post, new { @class="form-floating" }))
+    {
+    <div class="row align-items-center justify-content-center">
+        <div class="col-lg-6 col-md-8 col-sm-12 shadow border border-secondary p-5" style="border-radius: 20px;">
+
+            <label class="form-label mb-4 fs-5 fw-semibold" style="color:var(--main-color);">
+                Данные для входа в профиль:
+            </label>
+            <div class="input-group mb-3 has-validation">
+                <span class="input-group-text" id="basic-addon">@@</span>
+                <div class="form-floating flex-grow-1 mx-0">
+                    @this.Html.TextBox("login", "", new {@class=$"form-control {(this.Model.HasError ? "is-invalid" : "")}", 
+                        placeholder="Логин/Email", maxlength="30"})
+                    <label for="login">Логин/Email</label>
+                </div>
+            </div>
+            <div class="input-group mb-2 has-validation">
+                <div class="form-floating flex-grow-1 @(this.Model.HasError ? "is-invalid" : "")">
+                    @this.Html.TextBox("password", "", new {@class=$"form-control {(this.Model.HasError ? "is-invalid" : "")}", 
+                        type="password", placeholder="Пароль", maxlength="30"})
+                    <label for="password">Пароль</label>
+                </div>
+                <button class="btn btn-outline-secondary" type="button" id="button-addon">
+                    <i id="password-icon" class="bi bi-eye-slash-fill"></i>
+                </button>
+            </div>
+            <div id="passwordHelpBlock" class="form-text mb-4">
+                Использовать логин или электронную почту для входа в профиль
+            </div>
+            <div class="form-text mb-2 text-danger">
+                &nbsp @if(this.Model.HasError) { <text>@(this.Model.ErrorCause ?? "Неверные данные")</text> } 
+            </div>
+            <div class="d-flex justify-content-center mx-auto mb-3">
+                <input class="btn btn-success w-100 fs-5" type="submit"
+                    style="background-color:var(--main-color);border-color:var(--main-color)" value="Войти"/>
+            </div>
+        </div>
+    </div>
+    }
         break;
     case AuthorizationModel.AuthorizationMode.Registration:
-        @using(Html.BeginForm("Registration", "Authorization", FormMethod.Post))
-        {
-            <p>
-                <label for="login">Логин</label> @this.Html.TextBox("login")
-                <label for="password">Пароль</label> @this.Html.TextBox("password")
-            </p>
-            <p>
-                <label for="surname">Фамилия</label> @this.Html.TextBox("surname")
-                <label for="name">Имя</label> @this.Html.TextBox("name")
-                <label for="patronymic">Отчество</label> @this.Html.TextBox("patronymic")
-            </p>
-            <p>
-                <label for="login">Телефон</label> @this.Html.TextBox("phone")
-                <label for="email">Email</label> @this.Html.TextBox("email")
-                <label for="email">Семейный статус</label> @this.Html.DropDownList("family", familyStatusList)
-            </p>
-            <p>
-                <label for="birthday">День рождения</label> <input id="birthday" type="date" name="birthday" />
-                <label for="gender">Пол</label> @this.Html.DropDownList("gender", genderList)
-            </p>
-            <p> <input type="submit" value="Регистрация" /> </p>
-        }
+    @using(Html.BeginForm("Registration", "Authorization", FormMethod.Post))
+    {
+    <div class="row align-items-center justify-content-center">
+        <div class="col-lg-10 col-xl-8 col-md-12 col-12 shadow border border-secondary p-5" 
+            style="border-radius: 20px;">
+
+            <label class="form-label mb-4 fs-5 fw-semibold" style="color:var(--main-color);">
+                Укажите контактную информацию для регистации профиля:
+            </label>
+            <div class="row mb-4">
+                <div class="col-12 col-md-6">
+                    <label for="login" class="form-label">Логин:</label>
+                    <div class="input-group has-validation">
+                        <span class="input-group-text"><i class="bi bi-person-circle"></i></span>
+                        @this.Html.TextBox("login", "", new { @class=$"form-control {(this.Model.HasError ? "is-invalid" : "")}",
+                            maxlength="30", placeholder="Логин для вашего профиля"})
+                    </div>
+                    <div class="form-text">Диапазон вводимых символов от 5 до 30 знаков</div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label for="password" class="form-label">Пароль:</label>
+                    <div class="input-group has-validation">
+                        @this.Html.TextBox("password", "", new { @class=$"form-control {(this.Model.HasError ? "is-invalid" : "")}",
+                            type="password", placeholder="Пароль для вашего профиля", maxlength="30"})
+                        <button class="btn btn-outline-secondary" type="button" id="button-addon">
+                            <i id="password-icon" class="bi bi-eye-slash-fill"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">Диапазон вводимых символов от 5 до 30 знаков</div>
+                </div>
+                <div class="col-md-12 col-12 bg-secondary mt-4 my-st-4" style="height:1px;"></div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label for="surname" class="form-label">Фамилия:</label>
+                    @this.Html.TextBox("surname", "", new { @class=$"form-control {(this.Model.HasError ? "is-invalid" : "")}",
+                        placeholder="Ваша фамилия", maxlength="30"})
+                </div>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label for="name" class="form-label">Имя:</label>
+                    @this.Html.TextBox("name", "", new { @class=$"form-control {(this.Model.HasError ? "is-invalid" : "")}",
+                        placeholder="Ваше имя", maxlength="30"})
+                </div>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label for="patronymic" class="form-label">Отчество:</label>
+                    @this.Html.TextBox("patronymic", "", new { @class=$"form-control {(this.Model.HasError ? "is-invalid" : "")}",
+                        placeholder="Ваше отчество (необязательно)", maxlength="30"})
+                </div>
+                <div class="form-text">Диапазон вводимых символов от 5 до 30 знаков</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12 col-md-6">
+                    <label for="email" class="form-label">Email:</label>
+                    <div class="input-group has-validation">
+                        <span class="input-group-text"><i class="bi bi-mailbox2"></i></span>
+                        @this.Html.TextBox("email", "", new { @class=$"form-control {(this.Model.HasError ? "is-invalid" : "")}",
+                            maxlength="100", placeholder="Пример: example@gmail.com"})
+                    </div>
+                    <div class="form-text">Диапазон вводимых символов от 10 до 100 знаков</div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label for="phone" class="form-label">Телефон:</label>
+                    <div class="input-group has-validation">
+                        <span class="input-group-text"><i class="bi bi-telephone-forward"></i></span>
+                        @this.Html.TextBox("phone", "", new { @class=$"form-control {(this.Model.HasError ? "is-invalid" : "")}",
+                            maxlength="12", placeholder="Пример: +79001001010"})
+                    </div>
+                    <div class="form-text">Диапазон вводимых символов 12 знаков</div>
+                </div>
+                <div class="col-md-12 col-12 bg-secondary mt-4 my-st-4" style="height:1px;"></div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label for="gender" class="form-label">Пол:</label>
+                    <div class="input-group has-validation">
+                        <span class="input-group-text"><i class="bi bi-universal-access-circle"></i></span>
+                        @this.Html.DropDownList("gender", genderList, new { @class="form-select" })
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label for="family" class="form-label">Семейный статус:</label>
+                    <div class="input-group has-validation">
+                        <span class="input-group-text"><i class="bi bi-people-fill"></i></span>
+                        @this.Html.DropDownList("family", familyStatusList, new { @class="form-select" })
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label for="birthday" class="form-label">День рождения:</label>
+                    <input id="birthday" class="form-control" type="date" name="birthday"/>
+                </div>
+            </div>
+            <div class="form-text mb-2 text-danger">
+                &nbsp @if(this.Model.HasError) { <text>@(this.Model.ErrorCause ?? "Неверные данные")</text> } 
+            </div>
+            <div class="d-flex justify-content-center mx-auto">
+                <input class="btn btn-success w-100 fs-5" type="submit"
+                    style="background-color:var(--main-color);border-color:var(--main-color)" value="Регистрация"/>
+            </div>
+        </div>
+    </div>
+    }
         break;
 }
+</div>
+
+@section Scripts {
+<script id="password-hideshow" type="text/javascript">
+    $(this.document).ready(function() {
+        var changeClass = (added, deleted) => {
+            $('#password-icon').addClass(added); $('#password-icon').removeClass(deleted);
+        };
+        var isPasswordHide = false;
+        $('#button-addon').click(function(){
+            if(isPasswordHide == false) {
+                $('#password').attr('type', 'text'); changeClass('bi-eye-fill', 'bi-eye-slash-fill');
+            }
+            else { $('#password').attr('type', 'password'); changeClass('bi-eye-slash-fill', 'bi-eye-fill'); }
+            isPasswordHide = !isPasswordHide;
+        });
+    });
+</script>
+}
+
+@functions { }

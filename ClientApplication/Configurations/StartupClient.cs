@@ -52,6 +52,7 @@ namespace ClientApplication.Configurations
             });
             application.UseRouting().UseAuthentication().UseAuthorization();
 
+            application.UseMiddleware<Middleware.CheckProfileMiddleware>();
             application.UseEndpoints((IEndpointRouteBuilder route_builder) => 
             {
                 route_builder.MapControllers();

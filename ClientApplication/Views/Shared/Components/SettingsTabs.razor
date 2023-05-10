@@ -1,0 +1,30 @@
+﻿@using Microsoft.AspNetCore.Components.Forms;
+@using Microsoft.AspNetCore.Components.Web;
+
+<div class="list-group">
+    <a @onclick="@(async() => await ValueChangeHandling(ProfilePage.SelectedTabType.Details))" 
+        class="list-group-item list-group-item-action"
+        style="@this.SetSelectedStyle(ProfilePage.SelectedTabType.Details);font-size:15px;cursor:pointer;">Контактные данные</a>
+
+    <a @onclick="@(async() => await ValueChangeHandling(ProfilePage.SelectedTabType.Employee))" 
+        class="list-group-item list-group-item-action"
+        style="@this.SetSelectedStyle(ProfilePage.SelectedTabType.Employee);font-size:15px;cursor:pointer;">Работа/Учеба</a>
+
+    <a @onclick="@(async() => await ValueChangeHandling(ProfilePage.SelectedTabType.QualityHobby))" 
+        class="list-group-item list-group-item-action" 
+        style="@this.SetSelectedStyle(ProfilePage.SelectedTabType.QualityHobby);font-size:15px;cursor:pointer;">Хобби/Качества</a>
+</div>
+
+@code {
+    [ParameterAttribute] public ProfilePage.SelectedTabType ComponentValue { get; set; } = default!;
+    [ParameterAttribute] public EventCallback<ProfilePage.SelectedTabType> ComponentValueChanged { get; set; }
+
+    protected async Task ValueChangeHandling(ProfilePage.SelectedTabType value)
+    {
+        await this.ComponentValueChanged.InvokeAsync(this.ComponentValue = value);
+    }
+    private string SetSelectedStyle(ProfilePage.SelectedTabType type)
+    {
+        return this.ComponentValue == type ? "background-color:var(--main-color);color:white" : string.Empty;
+    }
+}

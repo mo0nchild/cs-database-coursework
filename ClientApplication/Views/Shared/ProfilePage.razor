@@ -8,106 +8,343 @@
 @inject ILogger<ProfilePage> Logger
 @inject IHttpClientFactory HttpFactory
 
-<ul class="nav nav-pills">
-    <li class="nav-item">
-        <button class="btn btn-outline-primary" 
-            @onclick="@(() => this.SelectedTab = SelectedTabType.Details)">Детальная информация</button>
-    </li>
-    <li class="nav-item">
-        <button class="btn btn-outline-secondary" 
-            @onclick="@(() => this.SelectedTab = SelectedTabType.EmployeeLocation)">Работа/Местоположение</button>
-    </li>
-    <li class="nav-item">
-        <button class="btn btn-outline-secondary" 
-            @onclick="@(() => this.SelectedTab = SelectedTabType.QualityHobby)">Хобби/Качества</button>
-    </li>
-</ul>
+<div class="container p-0 my-5">
+    <div class="row mb-4 justify-content-md-between">
 
-<div class="container">
-    @switch(this.SelectedTab)
-    {
-    case SelectedTabType.Details:
-    <div class="row">
-        <TextField TItem="string" ItemId="contact-surname" LabelTitle="Фамилия" ComponentValue="this.Contact.Surname"
-            BindValueChange="(value) => this.Contact.Surname = value"/>
-        <TextField TItem="string" ItemId="contact-name" LabelTitle="Имя" ComponentValue="this.Contact.Name"
-            BindValueChange="(value) => this.Contact.Name = value"/>
-        <TextField TItem="string" ItemId="contact-patronymic" LabelTitle="Отчество" ComponentValue="this.Contact.Patronymic"
-            BindValueChange="(value) => this.Contact.Patronymic = value"/>
+        <div class="col-md-3 col-12 mb-4">
+            <div class="shadow border border-secondary p-4" style="border-radius: 16px;">
+
+                <div class="d-md-none mb-3">
+                    <button class="btn btn-primary w-100" data-bs-toggle="collapse" data-bs-target="#collapseGroup"
+                        style="background-color:transparent;border-color:var(--main-color);color:var(--main-color);">
+                        Показать разделы настройки
+                    </button>
+                    <div class="collapse" id="collapseGroup">
+                        <div class="card card-body py-4"> <SettingsTabs @bind-ComponentValue="@this.SelectedTab"/></div>
+                    </div>
+                </div>
+                <div class="d-sm-none d-none d-md-block mb-3">
+                    <SettingsTabs @bind-ComponentValue="@this.SelectedTab" />
+                </div>
+                <ModalDialog ButtonText="Сохранить">
+                    <input type="hidden" name="name" value="@this.Contact.Name"/>
+                </ModalDialog>
+            </div>
+        </div>
+        <div class="col-md-9 col-12">
+            <div class="shadow border border-secondary p-5" style="border-radius: 16px;">
+                <label class="form-label mb-4 fs-5 fw-semibold" style="color:var(--main-color);">
+                    Изменить информацию профиля:
+                </label>
+            @switch(this.SelectedTab)
+            {
+            case SelectedTabType.Details:
+            <div class="row mb-3">
+                <div class="col-12 col-lg-4 col-md-6">
+                    <TextField ItemId="contact-surname" LabelTitle="Фамилия" @bind-ComponentValue="@this.Contact.Surname"
+                        Placeholder="Ваша фамилия"/>
+                </div>
+                <div class="col-12 col-lg-4 col-md-6">
+                    <TextField ItemId="contact-name" LabelTitle="Имя" @bind-ComponentValue="@this.Contact.Name"
+                        Placeholder="Ваше имя"/>
+                </div>
+                <div class="col-12 col-lg-4 col-md-6">
+                    <TextField ItemId="contact-patronymic" LabelTitle="Отчество" @bind-ComponentValue="@this.Contact.Patronymic"
+                        Placeholder="Ваше отчество"/>
+                </div>
+                <div class="form-text">Диапазон вводимых символов от 5 до 30 знаков</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12 col-md-6">
+                    <TextField ItemId="contact-phone" LabelTitle="Телефон" @bind-ComponentValue="@this.Contact.Phonenumber"
+                        Placeholder="Пример: +79001001010" GroupIcon="bi bi-telephone-forward" MaxLength="10"/>
+                    <div class="form-text">Диапазон вводимых символов 12 знаков</div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <TextField ItemId="contact-email" LabelTitle="Email" @bind-ComponentValue="@this.Contact.Emailaddress"
+                        Placeholder="Пример: example@gmail.com" GroupIcon="bi bi-mailbox2" MaxLength="100"/>
+                    <div class="form-text">Диапазон вводимых символов от 10 до 100 знаков</div>
+                </div>
+                <div class="col-md-12 col-12 bg-secondary mt-4 my-st-4" style="height:1px;"></div>
+                
+            </div>
+            <div class="row mb-3">
+                <div class="col-12 col-lg-4 col-md-6">
+                    <TextSelect ItemId="contact-gender" @bind-ComponentValue="@this.Contact.Gendertype.Gendertypename" 
+                        LabelTitle="Пол" GroupIcon="bi bi-universal-access-circle"
+                        ElementList="this.EditingModel.GenderTypes.Select(item => item.Gendertypename).ToList()"/>
+                </div>
+                <div class="col-12 col-lg-4 col-md-6">
+                    <TextSelect ItemId="contact-family" @bind-ComponentValue="@this.Contact.Familystatus" 
+                        LabelTitle="Семейный статус" GroupIcon="bi bi-people-fill" 
+                        ElementList="@((new [] { "В браке", "В поиске", "Холост", "Все сложно", "Не указывать" }).ToList())"/>
+                </div>
+                <div class="col-12 col-lg-4 col-md-6">
+                    <label for="birthday" class="form-label">День рождения:</label>
+                    <input id="birthday" class="form-control" type="date" name="birthday" @bind-value="this.Contact.Birthday"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="user-picture" class="form-label">Аватарка:</label>
+                <div class="col-6 col-lg-4 col-md-6 gx-4" id="user-picture">
+                    <select class="form-select" size="3" @onchange="@(this.UserPictureChangeHandler)" style="height:100px">
+                    @foreach(var item in this.EditingModel.Pictures) { <option value="@item.Filepath">@item.Picturename</option> }
+                    </select>
+                </div>
+                <div class="col-6 col-lg-4 col-md-6">
+                    <img src="@(this.Contact.Userpicture?.Filepath)" class="rounded img-thumbnail" 
+                        style="width:100px;height:100px;">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12 col-lg-4 col-md-6">
+                    <label for="contact-country" class="form-label">Страна:</label>
+                    <div class="input-group has-validation">
+
+                        <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                        <input class="form-control" type="text" @bind="@this.ContactCountry" readonly/>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4 col-md-6">
+                    <TextSelect ItemId="contact-city" @bind-ComponentValue="this.ContactLocation"
+                        LabelTitle="Город:" GroupIcon="bi bi-buildings"
+                        ElementList="this.EditingModel.Cities.Select(item => item.Cityname).ToList()"/>
+                </div>
+                <div class="col-12 col-lg-4 col-md-6">
+                    <TextField ItemId="contact-street" LabelTitle="Улица" @bind-ComponentValue="@this.Contact.Location!.Street"
+                         Placeholder="Ваша улица" GroupIcon="bi bi-signpost-2" MaxLength="50"/>
+                </div>
+            </div>
+                break;
+            case SelectedTabType.Employee:
+            <div class="row mb-3">
+                <div class="col-12 col-lg-4 col-md-6">
+                    <TextField ItemId="contact-company" LabelTitle="Название компании" Placeholder="Название вашей компании"
+                         @bind-ComponentValue="@this.CurrentEmployee.Companyname" IsValid="@this.CurrentEmployeeIsValid"
+                         GroupIcon="bi bi-journal-bookmark-fill" MaxLength="50"/>
+                    <div class="form-text">Диапазон вводимых символов от 5 до 50 знаков</div>
+                </div>
+                <div class="col-12 col-lg-4 col-md-6">
+                    <TextSelect ItemId="contact-city" @bind-ComponentValue="@this.CurrentEmployee.Post!.Postname"
+                        LabelTitle="Должность" GroupIcon="bi bi-person-video2" 
+                        ElementList="this.EditingModel.Postes.Select(item => item.Postname).ToList()"/>
+                </div>
+                <div class="col-12 col-lg-4 col-md-6">
+                    <TextSelect ItemId="contact-status" @bind-ComponentValue="@this.CurrentEmployee.Status"
+                        LabelTitle="Рабочий статус" GroupIcon="bi bi-link"
+                        ElementList="@(new() { "Не указывать", "Работает", "Уволен" })"/>
+                </div>
+            </div> 
+            <div class="row mb-3">
+                <div class="col-12 mb-3">
+                    <label for="contact-emploees" class="form-label">Рабочие места:</label>
+                    <div class="card card-body" id="contact-emploees"> 
+                        <ul class="list-group" style="overflow:scroll;max-height:160px;">
+                        @foreach(var item in this.Contact.Employees)
+                        {
+                            <li class="list-group-item d-flex justify-content-between">
+                                <label class="form-check-label" for="firstRadio">
+                                    @($"{item.Companyname} / {item.Post!.Postname} - {item.Status}")
+                                </label>
+                                <button type="button" class="btn-close" @onclick="@(value => this.Contact.Employees.Remove(item))" />
+                            </li>
+                        }
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 col-md-6 col-xl-4">
+                    <button style="background-color:var(--main-color);border-color:var(--main-color)" 
+                        class="btn btn-success w-100" @onclick="@EmployeeClickHandler">Добавить запись</button>
+                </div>
+            </div>
+                break;
+            case SelectedTabType.QualityHobby:
+            <div class="row mb-3">
+                <div class="col-12 col-lg-4 col-md-6 mb-3">
+                    <TextSelect ItemId="contact-hobby" @bind-ComponentValue="@this.CurrentHobbyValue"
+                        LabelTitle="Название хобби" GroupIcon="bi bi-gift"
+                        ElementList="@(this.EditingModel.HobbyTypes.Select(item => item.Hobbyname).ToList())"/>
+                </div>
+                <div class="col-12 col-lg-4 col-md-6 mb-3">
+                    <label for="contact-hobby" class="form-label">Тип хобби:</label>
+                    <div class="input-group has-validation">
+
+                        <span class="input-group-text"><i class="bi bi-file-bar-graph-fill"></i></span>
+                        <input class="form-control" type="text" @bind="@this.CurrentHobby.Hobbytype" readonly/>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4 col-md-6 mb-3">
+                    <label for="contact-hobby" class="form-label">&nbsp</label>
+
+                    <button style="background-color:var(--main-color);border-color:var(--main-color)" 
+                        class="btn btn-success w-100" @onclick="@HobbyClickHandler">Добавить запись</button>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12 mb-3">
+                    <label for="contact-hobby" class="form-label">Список хобби:</label>
+                    <div class="card card-body" id="contact-hobby"> 
+                        <ul class="list-group" style="overflow:scroll;max-height:160px;">
+                        @foreach(var item in this.Contact.Hobbies)
+                        {
+                            <li class="list-group-item d-flex justify-content-between">
+                                <label class="form-check-label" for="firstRadio"> @($"{item.Hobbyname} / {item.Hobbytype}")</label>
+                                <button type="button" class="btn-close" @onclick="@(value => this.Contact.Hobbies.Remove(item))" />
+                            </li>
+                        }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12 col-lg-4 col-md-6 mb-3">
+                    <TextSelect ItemId="contact-quality" @bind-ComponentValue="@this.CurrentQualityValue"
+                        LabelTitle="Челоческое качество" GroupIcon="bi bi-emoji-smile-fill"
+                        ElementList="@(this.EditingModel.QualityTypes.Select(item => item.Qualityname).ToList())"/>
+                </div>
+                <div class="col-12 col-lg-4 col-md-6 mb-3">
+                    <label for="contact-qualitytype" class="form-label">Тип качества:</label>
+                    <div class="input-group has-validation">
+
+                        <span class="input-group-text"><i class="bi bi-file-bar-graph-fill"></i></span>
+                        <input class="form-control" type="text" @bind="@this.CurrentQuality.Qualitytype" readonly/>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4 col-md-6 mb-3">
+                    <label for="contact-qualitytype" class="form-label">&nbsp</label>
+
+                    <button style="background-color:var(--main-color);border-color:var(--main-color)" 
+                        class="btn btn-success w-100" @onclick="@QualityClickHandler">Добавить запись</button>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12 mb-3">
+                    <label for="contact-quality" class="form-label">Список человеческих качеств:</label>
+                    <div class="card card-body" id="contact-quality"> 
+                        <ul class="list-group" style="overflow:scroll;max-height:160px;">
+                        @foreach(var item in this.Contact.Humanqualities)
+                        {
+                            <li class="list-group-item d-flex justify-content-between">
+                                <label class="form-check-label" for="firstRadio">@($"{item.Qualityname} / {item.Qualitytype}")</label>
+                                <button type="button" class="btn-close"
+                                    @onclick="@(value => this.Contact.Humanqualities.Remove(item))" />
+                            </li>
+                        }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+                break;
+            }   
+            </div>
+        </div>
+
     </div>
-    <div class="row">
-        <TextField TItem="string" ItemId="contact-phone" LabelTitle="Телефон" ComponentValue="this.Contact.Phonenumber"
-            BindValueChange="(value) => this.Contact.Phonenumber = value"/>
-        <TextField TItem="string" ItemId="contact-email" LabelTitle="Email" ComponentValue="this.Contact.Emailaddress"
-            BindValueChange="(value) => this.Contact.Emailaddress = value"/>
-        <div class="col-4 gx-4">
-            <label for="contact-gender" class="form-label">Gender:</label>
-            <div class="input-group mb-3">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" 
-                    aria-expanded="false" id="contact-gender">@this.Contact.Gendertype.Gendertypename</button>
-                <ul class="dropdown-menu">
-                @foreach(var item in this.EditingModel.GenderTypes)
-                { <li><a class="dropdown-item" @onclick="@(() => this.Contact.Gendertype = item)">@item.Gendertypename</a></li> }
-                </ul>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-4 gx-4">
-            <label for="contact-family" class="form-label">Семейный статус:</label>
-            <div class="input-group mb-3">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" 
-                    aria-expanded="false" id="contact-family">@this.Contact.Familystatus</button>
-                <ul class="dropdown-menu">
-                @foreach(var item in new string[] { "В браке", "В поиске", "Холост", "Все сложно", "Не указывать" })
-                { <li><a class="dropdown-item" @onclick="@(() => this.Contact.Familystatus = item)">@item</a></li> }
-                </ul>
-            </div>
-        </div>
-        <div class="col-4 gx-4">
-            <label for="contact-birthday" class="form-label">Дата рождения:</label>
-            <div class="input-group mb-3">
-                <input id="contact-birthday" type="date" name="birthday" @bind-value="@this.Contact.Birthday"/>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <label for="user-picture" class="form-label">Аватарка:</label>
-        <div class="col-4 gx-4" id="user-picture">
-            <select class="form-select" size="3" aria-label="size 3 select example" @onchange="@(this.UserPictureChangeHandler)">
-            @foreach(var item in this.EditingModel.Pictures) { <option value="@item.Filepath">@item.Picturename</option> }
-            </select>
-        </div>
-        <div class="col-4 gx-4">
-            <img src="@(this.Contact.Userpicture?.Filepath)" class="rounded img-thumbnail" 
-                style="width:100px;height:100px;">
-        </div>
-            </div>
-        break;
-    case SelectedTabType.EmployeeLocation:
-        
-        break;
-    case SelectedTabType.QualityHobby:
-        
-        break;
-    }   
 </div>
-
-<form method="post" action="user/profile">
-    <input type="hidden" name="name" value="@this.Contact.Name"/>
-    <input type="submit" value="Сохранить" @onclick="()=>{ Console.WriteLine(this.Contact.Name); }"/>
-</form>
-
 @code {
     [ParameterAttribute] public DAModels::Contact Contact { get; set; } = default!;
     [ParameterAttribute] public ProfileEditingModel EditingModel { get; set; } = default!;
 
-    public enum SelectedTabType : sbyte { Details, EmployeeLocation, QualityHobby  }
+    public enum SelectedTabType : sbyte { Details, Employee, QualityHobby  }
     public SelectedTabType SelectedTab { get; set; } = default;
 
     protected virtual void UserPictureChangeHandler(ChangeEventArgs args)
     {
         this.Contact.Userpicture = new DAModels::Userpicture() { Filepath = args.Value?.ToString() ?? "" };
-        this.Logger.LogInformation($"Picture: {args.Value?.ToString()}");
+        this.Logger.LogDebug($"Picture: {args.Value?.ToString()}");
+    }
+    protected string ContactCountry
+    {
+        get => this.Contact.Location!.City.Country; set { this.Contact.Location!.City.Country = value; }
+    }
+    protected string ContactLocation
+    {
+        get => this.Contact.Location!.City.Cityname; 
+        set { 
+            this.Contact.Location!.City = new DAModels::City()
+            {
+                Country = this.EditingModel.Cities.First(item => item.Cityname == value).Country,
+                Cityname = value,
+            };
+            this.Logger.LogDebug($"City: {ContactLocation}; Country: {this.Contact.Location!.City.Country}");
+        }
+    }
+    protected virtual bool CurrentEmployeeIsValid { get; set; } = true;
+    protected DAModels::Employee CurrentEmployee { get; set; } = default!;
+
+    protected virtual void EmployeeClickHandler() 
+    {
+        var validation = this.Contact.Employees.Where(item => item.Companyname == this.CurrentEmployee.Companyname
+            && item.Post!.Postname == this.CurrentEmployee.Post!.Postname).Count() <= 0;
+
+        if (this.CurrentEmployee.Companyname.Length < 5 || !validation) { CurrentEmployeeIsValid = false; return; }
+        this.Contact.Employees.Add(new DAModels::Employee()
+        {
+            Companyname = this.CurrentEmployee.Companyname, Status = this.CurrentEmployee.Status, 
+            Post = new() { Postname = this.CurrentEmployee.Post!.Postname } 
+        });
+        this.CurrentEmployeeIsValid = true;
+    }
+    protected DAModels::Humanquality CurrentQuality { get; set; } = default!;
+    private string CurrentQualityValue
+    {
+        get => this.CurrentQuality.Qualityname;
+        set {
+            this.CurrentQuality = new DAModels::Humanquality()
+            {
+                Qualitytype = this.EditingModel.QualityTypes.First(item => item.Qualityname == value).Qualitytype,
+                Qualityname = value,
+            };
+            this.Logger.LogDebug($"Quality: {CurrentQuality.Qualityname}; Type: {CurrentQuality.Qualitytype}");
+        }
+    }
+    protected virtual void QualityClickHandler() 
+    {
+        if(this.Contact.Humanqualities.Where(item => item.Qualityname == this.CurrentQualityValue).Count() <= 0)
+        {
+            this.Contact.Humanqualities.Add(new DAModels::Humanquality()
+            { Qualityname = this.CurrentQualityValue, Qualitytype = this.CurrentQuality.Qualitytype });
+        }
+    }
+
+    protected DAModels::Hobby CurrentHobby { get; set; } = default!;
+    private string CurrentHobbyValue
+    {
+        get => this.CurrentHobby.Hobbyname;
+        set {
+            this.CurrentHobby = new DAModels::Hobby()
+            {
+                Hobbytype = this.EditingModel.HobbyTypes.First(item => item.Hobbyname == value).Hobbytype,
+                Hobbyname = value,
+            };
+            this.Logger.LogDebug($"Hobby: {CurrentHobby.Hobbyname}; Type: {CurrentHobby.Hobbytype}");
+        }
+    }
+    protected virtual void HobbyClickHandler() 
+    {
+        if(this.Contact.Hobbies.Where(item => item.Hobbyname == this.CurrentHobbyValue).Count() <= 0)
+        {
+            this.Contact.Hobbies.Add(new DAModels::Hobby()
+            { Hobbyname = this.CurrentHobbyValue, Hobbytype = this.CurrentHobby.Hobbytype });
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        this.Contact.Location ??= new DAModels.Location() 
+        {
+            City = new() { Cityname = "Не установлено", Country = "Не установлено" } 
+        };
+        this.EditingModel.Cities.Insert(0, Contact.Location.City);
+        this.CurrentEmployee = new DAModels::Employee() 
+        { 
+            Post = new() { Postname = this.EditingModel.Postes.First().Postname },
+            Companyname = string.Empty, Status = "Не указывать", 
+        };
+        this.CurrentQuality = this.EditingModel.QualityTypes.First();
+        this.CurrentHobby = this.EditingModel.HobbyTypes.First();
+
+        this.Logger.LogDebug($"OnInitializedAsync was called");
     }
 }

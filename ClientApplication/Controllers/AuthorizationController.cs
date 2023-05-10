@@ -47,10 +47,13 @@ namespace ClientApplication.Controllers
             using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
             {
                 userProfile = dbcontext.Authorizations.Include((item) => item.Contact)
-                    .Where((item) => item.Login == login && item.Password == password).FirstOrDefault();
+                    .Where((item) => (item.Login == login || item.Contact.Emailaddress == login) 
+                    && item.Password == password).FirstOrDefault();
 
-                if (userProfile == null) return base.RedirectToRoute("authorization", new RouteValueDictionary()
-                { ["haserror"] = true, ["mode"] = AuthorizationMode.Login, ["errorcause"] = "" });
+                //if (userProfile == null) return base.RedirectToRoute("authorization", new RouteValueDictionary()
+                //{ ["haserror"] = true, ["mode"] = AuthorizationMode.Login, ["errorcause"] = "" });
+                if (userProfile == null) return base.RedirectToRoute("authorization", new AuthorizationModel
+                { ErrorCause = "", Mode = AuthorizationMode.Login, HasError = true });
             }
             var profilePrinciple = new ClaimsIdentity(new List<Claim>()
             {
