@@ -1,0 +1,83 @@
+﻿
+@model ICollection<DatabaseAccess.Models.Contact>
+@{
+    var sortingTypes = new string[] { "Без сортировки", "По имени", "По дате изменения", "По дате рождения" };
+    var profileTypes = new string[] { "Все контакты", "Аккаунты", "Созданные", };
+}
+<div class="container p-0 my-5">
+    <div class="row mb-3 justify-content-between">
+
+        <div class="col-12 col-md-6 text-center text-md-start mb-3 mb-md-0">
+            <h1 class="fs-2 m-0" style="color:var(--main-color);font-weight: 600;">
+                Меню контактов&nbsp<span class="badge rounded-pill bg-danger" style="font-size:12px;">Contact</span>
+            </h1>
+            <p class="form-text m-0" style="font-size:18px;">Список доступных контактов</p>
+        </div>
+        <div class="col-12 col-md-6 d-flex flex-row align-items-center">
+            @using (this.Html.BeginForm("ProfileInfo", "UserProfile", FormMethod.Get, new { @class="d-inline flex-grow-1" }))
+            {
+            <div class="d-flex input-group has-validation">
+                @this.Html.TextBox("search", "", new {@class=$"form-control", placeholder="Контакт для поиска", maxlength="30"})
+                <button class="btn btn-success fs-5" type="submit"
+                    style="background-color:var(--main-color);border-color:var(--main-color)" value="Найти">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+            }
+            @using (this.Html.BeginForm())
+            {
+            <div class="d-flex justify-content-center mx-2">
+                <button class="btn btn-success w-100 fs-5" type="submit"
+                    style="background-color:var(--main-color);border-color:var(--main-color)">
+                    <i class="bi bi-person-fill-add"></i>
+                </button>
+            </div>
+            }
+        </div>
+    </div>
+    @using (this.Html.BeginForm("ProfileInfo", "UserProfile", FormMethod.Get, new { @class="row mb-5 justify-content-end" }))
+    {
+    <div class="col-12 сщд-sm-6 col-lg-4">
+        <label class="form-label">Параметры сортировки:</label>
+        <div class="input-group mb-2">
+
+            <span class="input-group-text"><i class="bi bi-card-list"></i></span>
+            <select id="order" name="sortingtype" class="form-select" onchange="this.form.submit()">
+                @foreach(var selectedItem in sortingTypes) 
+                {
+                if (selectedItem == this.ViewData["SortingType"]!.ToString()) { <option value="@selectedItem" selected>@selectedItem</option> }
+                else { <option value="@selectedItem">@selectedItem</option> }
+                }
+            </select>
+        </div>
+    </div>
+    <div class="col-12 сщд-sm-6 col-lg-4">
+        <label class="form-label">Параметры отображения:</label>
+        <div class="input-group mb-2">
+
+            <span class="input-group-text"><i class="bi bi-person-square"></i></span>
+            <select id="profiletype" name="profiletype" class="form-select" onchange="this.form.submit()">
+                @foreach(var selectedItem in profileTypes) 
+                {
+                if (selectedItem == this.ViewData["ProfileType"]!.ToString()) { <option value="@selectedItem" selected>@selectedItem</option> }
+                else { <option value="@selectedItem">@selectedItem</option> }
+                }
+            </select>
+        </div>
+    </div>
+    @this.Html.Hidden("Mode", UserProfileModel.PageMode.Contacts);
+    }
+    <div class="row mb-3 row-cols-1 row-cols-sm-4 row-cols-lg-2 justify-content-between">
+        @for(int i = 0; i < 10; i++)
+        {
+        <div class="card col mb-3" style="width: 16rem;">
+            <img src="/icons/user1.png" class="card-img-top p-5" alt="...">
+            <div class="card-body">
+                <h5 class="card-title">Card title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <a href="#" class="btn btn-primary">Go somewhere</a>
+            </div>
+        </div>
+        }
+    </div>
+</div>

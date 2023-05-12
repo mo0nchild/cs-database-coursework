@@ -26,6 +26,8 @@
                 <div class="d-sm-none d-none d-md-block mb-3">
                     <SettingsTabs @bind-ComponentValue="@this.SelectedTab" />
                 </div>
+                @if(this.IsReadonly == false) 
+                {
                 <ModalDialog ButtonText="Сохранить">
                     <input type="hidden" name="id" value="@this.Contact.Contactid"/>
                     <input type="hidden" name="surname" value="@this.Contact.Surname"/>
@@ -68,12 +70,13 @@
                             value="@this.Contact.Humanqualities.ElementAt(index).Qualityname"/>
                     }
                 </ModalDialog>
+                }
             </div>
         </div>
         <div class="col-md-9 col-12">
             <div class="shadow border border-secondary p-4" style="border-radius: 16px;">
                 <label class="form-label mb-2 fs-5 fw-semibold" style="color:var(--main-color);">
-                    Изменить информацию профиля:
+                    Просмотр информации контакта:
                 </label>
                 <div class="form-text mb-2 text-danger">
                     &nbsp @if(this.ErrorMessage != null) { <text>@(this.ErrorMessage)</text> } 
@@ -291,7 +294,9 @@
 @code {
     [ParameterAttribute] public DAModels::Contact Contact { get; set; } = default!;
     [ParameterAttribute] public ProfileEditingModel EditingModel { get; set; } = default!;
+
     [ParameterAttribute] public string?  ErrorMessage { get; set; } = default!;
+    [ParameterAttribute] public bool IsReadonly { get; set; } = default!;
 
     public enum SelectedTabType : sbyte { Details, Employee, QualityHobby  }
     public SelectedTabType SelectedTab { get; set; } = default;
@@ -322,10 +327,10 @@
 
     protected virtual void EmployeeClickHandler() 
     {
-        //var validation = this.Contact.Employees.Where(item => item.Companyname == this.CurrentEmployee.Companyname
-        //    && item.Post!.Postname == this.CurrentEmployee.Post!.Postname).Count() <= 0;
+        var validation = this.Contact.Employees.Where(item => item.Companyname == this.CurrentEmployee.Companyname
+            && item.Post!.Postname == this.CurrentEmployee.Post!.Postname).Count() <= 0;
 
-        //if (this.CurrentEmployee.Companyname.Length < 5 || !validation) { CurrentEmployeeIsValid = false; return; }
+        if (this.CurrentEmployee.Companyname.Length < 5 || !validation) { CurrentEmployeeIsValid = false; return; }
         this.Contact.Employees.Add(new DAModels::Employee()
         {
             Companyname = this.CurrentEmployee.Companyname, Status = this.CurrentEmployee.Status, 

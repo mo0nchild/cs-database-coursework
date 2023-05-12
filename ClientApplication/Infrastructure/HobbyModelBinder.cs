@@ -27,6 +27,7 @@ namespace ClientApplication.Infrastructure
             {
                 return Task.FromResult(bindingContext.Result = ModelBindingResult.Failed());
             }
+            this.BindingResult.Clear();
             for (var index = default(int); index < length; index++)
             {
                 var hobbyValues = bindingContext.ValueProvider.GetValue($"hobby[{index}]");

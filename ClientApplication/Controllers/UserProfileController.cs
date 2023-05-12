@@ -36,8 +36,8 @@ namespace ClientApplication.Controllers
                     .Include(prop => prop.Employees).ThenInclude(prop => prop!.Post)
                     .Include(prop => prop.Userpicture)
                     .Include(prop => prop.Authorization)
-                    //.Include(prop => prop.FriendContactid1Navigations).ThenInclude(prop => prop.Contactid2Navigation)
 
+                    .Include(prop => prop.FriendContactid1Navigations).ThenInclude(prop => prop.Contactid2Navigation)
                     .Include(prop => prop.Humanqualities).Include(prop => prop.Hobbies)
                     .Where(item => item.Contactid == int.Parse(authorizatedProfile.Value)).FirstOrDefaultAsync())!;
                 //if (model.Contact == null) { return base.LocalRedirect("/logout"); }
@@ -104,23 +104,20 @@ namespace ClientApplication.Controllers
                 }
                 await dbcontext.SaveChangesAsync();
 
-                var result = await dbcontext.Employees.Where(item => item.Contactid == contactModel.Contactid).ToListAsync();
-                dbcontext.Employees.RemoveRange(result);
+                var result = await dbcontext.Employees.Where(item => item.Contactid == contactModel.Contactid)
+                    .ExecuteDeleteAsync();
+                await dbcontext.SaveChangesAsync();
 
                 foreach (DAModels::Employee employee in contactModel.Employees)
                 {
                     var contactPost = await dbcontext.Posts.FirstAsync(city => city.Postname == employee.Post!.Postname);
                     var newEmployee = new DAModels::Employee()
                     {
-                        Contactid = userContact.Contactid,
-                        Post = contactPost,
-                        Status = employee.Status,
-                        Companyname = employee.Companyname,
+                        Contactid = userContact.Contactid, Post = contactPost,
+                        Status = employee.Status, Companyname = employee.Companyname,
                     };
                     dbcontext.Employees.Add(newEmployee);
                 }
-                await dbcontext.SaveChangesAsync();
-
                 userContact.Hobbies.Clear(); userContact.Humanqualities.Clear();
                 foreach (DAModels::Hobby hobby in contactModel.Hobbies)
                 {

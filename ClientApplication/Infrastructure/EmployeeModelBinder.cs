@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace ClientApplication.Infrastructure
 {
@@ -25,7 +27,8 @@ namespace ClientApplication.Infrastructure
             {
                 return Task.FromResult(bindingContext.Result = ModelBindingResult.Failed());
             }
-            for(var index = default(int); index < length; index++)
+            this.BindingResult.Clear();
+            for (var index = default(int); index < length; index++)
             {
                 var employeeValues = new Dictionary<string, ValueProviderResult>()
                 {

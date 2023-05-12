@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 
 namespace ClientApplication.Configurations
 {
@@ -40,12 +41,13 @@ namespace ClientApplication.Configurations
                 if (options is DbContextOptionsBuilder<DatabaseContext> converted_options)
                 { new DatabaseContextFactory.DatabaseConfigure(converted_options!).ConfigureOptions(); }
             });
+            services.AddSignalR(options => options.MaximumReceiveMessageSize = 102400000L);
         }
         protected override void ConfigureApplication(WebApplication application, IWebHostEnvironment env)
         {
             application.Map("/", (HttpContext context) => Results.RedirectToRoute("profile"));
             application.UseStaticFiles();
-            application.UseStaticFiles(new StaticFileOptions() // обрабатывает запросы к каталогу wwwroot/html
+            application.UseStaticFiles(new StaticFileOptions()
             {
                 FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Icons")),
                 RequestPath = new PathString("/Icons")

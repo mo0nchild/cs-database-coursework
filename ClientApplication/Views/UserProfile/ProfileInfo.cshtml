@@ -1,19 +1,26 @@
 ﻿@using ClientApplication.Views.Shared;
+@using DatabaseAccess.Models;
 @model ClientApplication.ViewModels.UserProfileModel;
 @{
-    this.ViewBag.Title = this.Model.Contact.Authorization!.Login;
-    const string underlineClass = "border-bottom border-3";
-
-    const UserProfileModel.PageMode contactMode = UserProfileModel.PageMode.Contacts;
     const UserProfileModel.PageMode settingsMode = UserProfileModel.PageMode.Settings;
+    const UserProfileModel.PageMode contactMode = UserProfileModel.PageMode.Contacts;
+
+    this.ViewBag.Title = this.Model.Contact.Authorization!.Login;
+    var searchingParameters = new ViewDataDictionary(this.ViewData) 
+    { 
+        ["SortingType"] = this.Model.SortingType, ["ProfileType"] = this.Model.ProfileType
+    };
+    const string underlineClass = "border-bottom border-3";
 }
 @switch(this.Model.Mode)
 {
     case UserProfileModel.PageMode.Settings:
     <component type="typeof(ProfilePage)" render-mode="ServerPrerendered" param-Contact="this.Model.Contact"
-        param-EditingModel="this.ViewBag.EditingModel" param-ErrorMessage="this.Model.ErrorMessage"/>
+        param-EditingModel="(ProfileEditingModel)this.ViewBag.EditingModel" param-ErrorMessage="this.Model.ErrorMessage"/>
         break;
     case UserProfileModel.PageMode.Contacts:
+        @await this.Html.PartialAsync("ContactList", this.Model.Contact.FriendContactid1Navigations
+            .Select(item => item.Contactid2Navigation).ToList(), searchingParameters);
         break;
 }
 @section Scripts {
