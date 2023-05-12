@@ -67,17 +67,17 @@
     </div>
     @this.Html.Hidden("Mode", UserProfileModel.PageMode.Contacts);
     }
-    <div class="row mb-3 row-cols-1 row-cols-sm-4 row-cols-lg-2 justify-content-between">
+    <div class="row mb-3 justify-content-center">
         @for(int i = 0; i < 10; i++)
         {
-        <div class="card col mb-3" style="width: 16rem;">
-            <img src="/icons/user1.png" class="card-img-top p-5" alt="...">
-            <div class="card-body">
-                <h5 class="card-title">Card title</h5>
-                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                <a href="#" class="btn btn-primary">Go somewhere</a>
+        <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-3">
+            <div class="card m-3 shadow-sm border border-secondary flex-row flex-sm-column"  @if()style="border-radius:16px;">
+
+                
+
             </div>
         </div>
         }
     </div>
 </div>
+@functions { }
