@@ -1,7 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Components.Forms;
 @using Microsoft.AspNetCore.Components.Web;
 
-
 <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#modal"
     style="background-color:var(--main-color);border-color:var(--main-color)">@this.ButtonText</button>
 
@@ -15,7 +14,7 @@
             <div class="modal-body"> Сохранение данных. Вы точно уверены? </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <form method="post" action="user/profile">
+                <form method="post" action="user/profile_update">
                     @this.ChildContent
                     <input type="submit" value="Сохранить" class="btn btn-success w-100"
                         style="background-color:var(--main-color);border-color:var(--main-color)"/>

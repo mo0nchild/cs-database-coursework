@@ -11,7 +11,7 @@
 {
     case UserProfileModel.PageMode.Settings:
     <component type="typeof(ProfilePage)" render-mode="ServerPrerendered" param-Contact="this.Model.Contact"
-        param-EditingModel="this.ViewBag.EditingModel"/>
+        param-EditingModel="this.ViewBag.EditingModel" param-ErrorMessage="this.Model.ErrorMessage"/>
         break;
     case UserProfileModel.PageMode.Contacts:
         break;

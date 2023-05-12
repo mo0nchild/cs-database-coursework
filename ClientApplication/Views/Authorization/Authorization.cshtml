@@ -75,7 +75,7 @@
         break;
     case AuthorizationModel.AuthorizationMode.Registration:
     @using(Html.BeginForm("Registration", "Authorization", FormMethod.Post))
-    {
+    {    
     <div class="row align-items-center justify-content-center">
         <div class="col-lg-10 col-xl-8 col-md-12 col-12 shadow border border-secondary p-5" 
             style="border-radius: 20px;">
@@ -168,6 +168,7 @@
             <div class="form-text mb-2 text-danger">
                 &nbsp @if(this.Model.HasError) { <text>@(this.Model.ErrorCause ?? "Неверные данные")</text> } 
             </div>
+            @this.Html.Hidden("id", 0);
             <div class="d-flex justify-content-center mx-auto">
                 <input class="btn btn-success w-100 fs-5" type="submit"
                     style="background-color:var(--main-color);border-color:var(--main-color)" value="Регистрация"/>

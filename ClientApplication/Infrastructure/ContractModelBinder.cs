@@ -50,11 +50,12 @@ namespace ClientApplication.Infrastructure
         {
             ValueProviderResult GetProvider(string name) => bindingContext.ValueProvider.GetValue(name);
             string GetValue(string name) => GetProvider(name).FirstValue!;
-            foreach (var item in new[] { "phone", "email", "gender", "birthday", "surname", "name", "patronymic", "family" })
+            foreach (var item in new[] { "phone", "email", "gender", "birthday", "surname", "name", "patronymic", "family", "id" })
             {
                 if (GetProvider(item) == ValueProviderResult.None) return this.FallbackBinder.BindModelAsync(bindingContext);
             }
-            if (!DateTime.TryParse(GetProvider("birthday").FirstValue, out var birthdayValue))
+            if (!DateTime.TryParse(GetProvider("birthday").FirstValue, out var birthdayValue)
+                || !int.TryParse(GetProvider("id").FirstValue, out var idValue))
             {
                 return Task.FromResult(bindingContext.Result = ModelBindingResult.Failed());
             }
@@ -64,13 +65,13 @@ namespace ClientApplication.Infrastructure
                 Surname = GetValue("surname"), Name = GetValue("name"), Patronymic = GetValue("patronymic"),
                 Birthday = birthdayValue, Phonenumber = GetValue("phone"), Emailaddress = GetValue("email"),
 
-                Employees = this.employeeBinder.BindingResult, Familystatus = GetValue("family"),
+                Contactid = idValue, Employees = this.employeeBinder.BindingResult, Familystatus = GetValue("family"),
                 Gendertype = new DAModels::Gendertype() { Gendertypename = GetValue("gender") },
             };
             this.Logger.LogInformation("Contact binder create model");
 
             this.BindingResult.Userpicture = (GetProvider("picture") == ValueProviderResult.None) ? null
-                : new DAModels::Userpicture() { Picturename = GetValue("picture") };
+                : new DAModels::Userpicture() { Filepath = GetValue("picture") };
             var locationModelState = true;
             foreach(var locationItem in new string[] { "country", "city", "street" })
             {

@@ -27,26 +27,68 @@
                     <SettingsTabs @bind-ComponentValue="@this.SelectedTab" />
                 </div>
                 <ModalDialog ButtonText="Сохранить">
+                    <input type="hidden" name="id" value="@this.Contact.Contactid"/>
+                    <input type="hidden" name="surname" value="@this.Contact.Surname"/>
                     <input type="hidden" name="name" value="@this.Contact.Name"/>
+                    <input type="hidden" name="patronymic" value="@this.Contact.Patronymic"/>
+                    <input type="hidden" name="phone" value="@this.Contact.Phonenumber"/>
+                    <input type="hidden" name="email" value="@this.Contact.Emailaddress"/>
+
+                    <input type="hidden" name="family" value="@this.Contact.Familystatus"/>
+                    <input type="hidden" name="birthday" value="@this.Contact.Birthday"/>
+                    <input type="hidden" name="gender" value="@this.Contact.Gendertype.Gendertypename"/>
+                    <input type="hidden" name="picture" value="@this.Contact.Userpicture!.Filepath"/>
+
+                    @if(this.Contact.Location!.City.Cityname != "Не установлено")
+                    {
+                        <input type="hidden" name="city" value="@this.Contact.Location!.City.Cityname"/>
+                        <input type="hidden" name="country" value="@this.Contact.Location!.City.Country"/>
+                        <input type="hidden" name="street" value="@this.Contact.Location!.Street"/>
+                    }
+                    <input type="hidden" name="employee_length" value="@this.Contact.Employees.Count()"/>
+                    @for(var index = 0; index < this.Contact.Employees.Count(); index++)
+                    {
+                        <input type="hidden" name="employee[@index].company" 
+                            value="@this.Contact.Employees.ElementAt(index).Companyname"/>
+                        <input type="hidden" name="employee[@index].post" 
+                            value="@this.Contact.Employees.ElementAt(index).Post!.Postname"/>
+                        <input type="hidden" name="employee[@index].status" 
+                            value="@this.Contact.Employees.ElementAt(index).Status"/>
+                    }
+                    <input type="hidden" name="hobby_length" value="@this.Contact.Hobbies.Count()"/>
+                    @for(var index = 0; index < this.Contact.Hobbies.Count(); index++)
+                    {
+                        <input type="hidden" name="hobby[@index]" 
+                            value="@this.Contact.Hobbies.ElementAt(index).Hobbyname"/>
+                    }
+                    <input type="hidden" name="quality_length" value="@this.Contact.Humanqualities.Count()"/>
+                    @for(var index = 0; index < this.Contact.Humanqualities.Count(); index++)
+                    {
+                        <input type="hidden" name="quality[@index]" 
+                            value="@this.Contact.Humanqualities.ElementAt(index).Qualityname"/>
+                    }
                 </ModalDialog>
             </div>
         </div>
         <div class="col-md-9 col-12">
-            <div class="shadow border border-secondary p-5" style="border-radius: 16px;">
-                <label class="form-label mb-4 fs-5 fw-semibold" style="color:var(--main-color);">
+            <div class="shadow border border-secondary p-4" style="border-radius: 16px;">
+                <label class="form-label mb-2 fs-5 fw-semibold" style="color:var(--main-color);">
                     Изменить информацию профиля:
                 </label>
+                <div class="form-text mb-2 text-danger">
+                    &nbsp @if(this.ErrorMessage != null) { <text>@(this.ErrorMessage)</text> } 
+                </div>
             @switch(this.SelectedTab)
             {
             case SelectedTabType.Details:
             <div class="row mb-3">
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextField ItemId="contact-surname" LabelTitle="Фамилия" @bind-ComponentValue="@this.Contact.Surname"
-                        Placeholder="Ваша фамилия"/>
+                        Placeholder="Ваша фамилия" IsValid="@(this.ErrorMessage == null)"/>
                 </div>
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextField ItemId="contact-name" LabelTitle="Имя" @bind-ComponentValue="@this.Contact.Name"
-                        Placeholder="Ваше имя"/>
+                        Placeholder="Ваше имя" IsValid="@(this.ErrorMessage == null)"/>
                 </div>
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextField ItemId="contact-patronymic" LabelTitle="Отчество" @bind-ComponentValue="@this.Contact.Patronymic"
@@ -57,7 +99,7 @@
             <div class="row mb-3">
                 <div class="col-12 col-md-6">
                     <TextField ItemId="contact-phone" LabelTitle="Телефон" @bind-ComponentValue="@this.Contact.Phonenumber"
-                        Placeholder="Пример: +79001001010" GroupIcon="bi bi-telephone-forward" MaxLength="10"/>
+                        Placeholder="Пример: +79001001010" GroupIcon="bi bi-telephone-forward" MaxLength="12"/>
                     <div class="form-text">Диапазон вводимых символов 12 знаков</div>
                 </div>
                 <div class="col-12 col-md-6">
@@ -87,8 +129,12 @@
             <div class="row mb-3">
                 <label for="user-picture" class="form-label">Аватарка:</label>
                 <div class="col-6 col-lg-4 col-md-6 gx-4" id="user-picture">
-                    <select class="form-select" size="3" @onchange="@(this.UserPictureChangeHandler)" style="height:100px">
-                    @foreach(var item in this.EditingModel.Pictures) { <option value="@item.Filepath">@item.Picturename</option> }
+                    <select class="form-select" size="3" @onchange="this.UserPictureChangeHandler" style="height:100px">
+                    @foreach(var item in this.EditingModel.Pictures) 
+                    {
+                        @if(item.Filepath != this.Contact.Userpicture!.Filepath) { <option value="@item.Filepath">@item.Picturename</option> }
+                        else { <option value="@item.Filepath" selected>@item.Picturename</option> }
+                    }
                     </select>
                 </div>
                 <div class="col-6 col-lg-4 col-md-6">
@@ -107,12 +153,13 @@
                 </div>
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextSelect ItemId="contact-city" @bind-ComponentValue="this.ContactLocation"
-                        LabelTitle="Город:" GroupIcon="bi bi-buildings"
+                        LabelTitle="Город" GroupIcon="bi bi-buildings"
                         ElementList="this.EditingModel.Cities.Select(item => item.Cityname).ToList()"/>
                 </div>
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextField ItemId="contact-street" LabelTitle="Улица" @bind-ComponentValue="@this.Contact.Location!.Street"
-                         Placeholder="Ваша улица" GroupIcon="bi bi-signpost-2" MaxLength="50"/>
+                         Placeholder="Ваша улица" GroupIcon="bi bi-signpost-2" MaxLength="50" IsValid="@(this.ErrorMessage == null)"/>
+                    <div class="form-text">Диапазон вводимых символов от 5 до 50 знаков</div>
                 </div>
             </div>
                 break;
@@ -244,6 +291,7 @@
 @code {
     [ParameterAttribute] public DAModels::Contact Contact { get; set; } = default!;
     [ParameterAttribute] public ProfileEditingModel EditingModel { get; set; } = default!;
+    [ParameterAttribute] public string?  ErrorMessage { get; set; } = default!;
 
     public enum SelectedTabType : sbyte { Details, Employee, QualityHobby  }
     public SelectedTabType SelectedTab { get; set; } = default;
@@ -251,7 +299,7 @@
     protected virtual void UserPictureChangeHandler(ChangeEventArgs args)
     {
         this.Contact.Userpicture = new DAModels::Userpicture() { Filepath = args.Value?.ToString() ?? "" };
-        this.Logger.LogDebug($"Picture: {args.Value?.ToString()}");
+        this.Logger.LogInformation($"Picture: {args.Value?.ToString()}");
     }
     protected string ContactCountry
     {
@@ -266,7 +314,7 @@
                 Country = this.EditingModel.Cities.First(item => item.Cityname == value).Country,
                 Cityname = value,
             };
-            this.Logger.LogDebug($"City: {ContactLocation}; Country: {this.Contact.Location!.City.Country}");
+            this.Logger.LogInformation($"City: {ContactLocation}; Country: {this.Contact.Location!.City.Country}");
         }
     }
     protected virtual bool CurrentEmployeeIsValid { get; set; } = true;
@@ -274,10 +322,10 @@
 
     protected virtual void EmployeeClickHandler() 
     {
-        var validation = this.Contact.Employees.Where(item => item.Companyname == this.CurrentEmployee.Companyname
-            && item.Post!.Postname == this.CurrentEmployee.Post!.Postname).Count() <= 0;
+        //var validation = this.Contact.Employees.Where(item => item.Companyname == this.CurrentEmployee.Companyname
+        //    && item.Post!.Postname == this.CurrentEmployee.Post!.Postname).Count() <= 0;
 
-        if (this.CurrentEmployee.Companyname.Length < 5 || !validation) { CurrentEmployeeIsValid = false; return; }
+        //if (this.CurrentEmployee.Companyname.Length < 5 || !validation) { CurrentEmployeeIsValid = false; return; }
         this.Contact.Employees.Add(new DAModels::Employee()
         {
             Companyname = this.CurrentEmployee.Companyname, Status = this.CurrentEmployee.Status, 
@@ -295,7 +343,7 @@
                 Qualitytype = this.EditingModel.QualityTypes.First(item => item.Qualityname == value).Qualitytype,
                 Qualityname = value,
             };
-            this.Logger.LogDebug($"Quality: {CurrentQuality.Qualityname}; Type: {CurrentQuality.Qualitytype}");
+            this.Logger.LogInformation($"Quality: {CurrentQuality.Qualityname}; Type: {CurrentQuality.Qualitytype}");
         }
     }
     protected virtual void QualityClickHandler() 
@@ -317,7 +365,7 @@
                 Hobbytype = this.EditingModel.HobbyTypes.First(item => item.Hobbyname == value).Hobbytype,
                 Hobbyname = value,
             };
-            this.Logger.LogDebug($"Hobby: {CurrentHobby.Hobbyname}; Type: {CurrentHobby.Hobbytype}");
+            this.Logger.LogInformation($"Hobby: {CurrentHobby.Hobbyname}; Type: {CurrentHobby.Hobbytype}");
         }
     }
     protected virtual void HobbyClickHandler() 
@@ -345,6 +393,6 @@
         this.CurrentQuality = this.EditingModel.QualityTypes.First();
         this.CurrentHobby = this.EditingModel.HobbyTypes.First();
 
-        this.Logger.LogDebug($"OnInitializedAsync was called");
+        this.Logger.LogInformation($"OnInitializedAsync was called");
     }
 }
