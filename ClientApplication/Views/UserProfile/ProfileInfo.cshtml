@@ -8,7 +8,9 @@
     this.ViewBag.Title = this.Model.Contact.Authorization!.Login;
     var searchingParameters = new ViewDataDictionary(this.ViewData) 
     { 
-        ["SortingType"] = this.Model.SortingType, ["ProfileType"] = this.Model.ProfileType
+        ["SortingType"] = this.Model.SortingType, ["ProfileType"] = this.Model.ProfileType,
+        ["RecordOnPage"] = this.Model.RecordOnPage, ["CurrentPage"] = this.Model.CurrentPage,
+        ["PagesCount"] = this.Model.PagesCount
     };
     const string underlineClass = "border-bottom border-3";
 }

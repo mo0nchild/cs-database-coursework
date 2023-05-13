@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Newtonsoft.Json;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace ClientApplication.Controllers
 {
@@ -28,19 +30,59 @@ namespace ClientApplication.Controllers
             var authorizatedProfile = this.HttpContext.User.FindFirst(ClaimTypes.PrimarySid)!;
             this.ViewBag.EditingModel = new ProfileEditingModel();
 
+            Console.WriteLine($"current_page: {model?.CurrentPage}");
+            Console.WriteLine($"sortingtype: {model?.SortingType}");
+            Console.WriteLine($"profile_type: {model?.ProfileType}");
+            Console.WriteLine($"search_query: {model?.SearchQuery}");
+            Console.WriteLine($"search_query: {model?.SearchQuery}");
+
             if (model == null) model = new UserProfileModel();
             using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
             {
                 model.Contact = (await dbcontext.Contacts.Include(prop => prop.Gendertype)
                     .Include(prop => prop.Location).ThenInclude(prop => prop!.City)
                     .Include(prop => prop.Employees).ThenInclude(prop => prop!.Post)
-                    .Include(prop => prop.Userpicture)
-                    .Include(prop => prop.Authorization)
 
                     .Include(prop => prop.FriendContactid1Navigations).ThenInclude(prop => prop.Contactid2Navigation)
+                        .ThenInclude(prop => prop.Authorization)
+                    .Include(prop => prop.Userpicture).Include(prop => prop.Authorization)
+
                     .Include(prop => prop.Humanqualities).Include(prop => prop.Hobbies)
                     .Where(item => item.Contactid == int.Parse(authorizatedProfile.Value)).FirstOrDefaultAsync())!;
                 //if (model.Contact == null) { return base.LocalRedirect("/logout"); }
+
+                model.SearchQuery = model.SearchQuery == default ? default! : model.SearchQuery.Replace('+', ' ').Trim();
+                model.Contact.FriendContactid1Navigations = model.Contact.FriendContactid1Navigations
+                    .Where(delegate (DAModels::Friend record)
+                {
+                    var friendContact = record.Contactid2Navigation;
+                    return model.SearchQuery == default || Regex.IsMatch(friendContact.Emailaddress, model.SearchQuery)
+                        || Regex.IsMatch($"{friendContact.Name} {friendContact.Surname}", model.SearchQuery)
+                        || (friendContact.Phonenumber != null && Regex.IsMatch(friendContact.Phonenumber, model.SearchQuery));
+                })
+                .ToList().Where(delegate (DAModels::Friend record)
+                {
+                    var friendContact = record.Contactid2Navigation;
+                    return model.ProfileType switch { "Все контакты" => true, "Созданные" => friendContact.Authorization == null,
+                        "Аккаунты" => friendContact.Authorization != null, _ => true, 
+                    };
+                }).ToImmutableList();
+                model.PagesCount = (int)Math.Ceiling(model.Contact.FriendContactid1Navigations.Count() 
+                    / (double)model.RecordOnPage);
+
+                DAModels::Contact GetContact(DAModels::Friend record) => record.Contactid2Navigation;
+                model.Contact.FriendContactid1Navigations = (model.SortingType switch {
+                    "Без сортировки" => 
+                        model.Contact.FriendContactid1Navigations.OrderBy(item => GetContact(item).Contactid),
+                    "По дате изменения" =>
+                        model.Contact.FriendContactid1Navigations.OrderBy(item => GetContact(item).Lastupdate.ToString()),
+                    "По дате рождения" => 
+                        model.Contact.FriendContactid1Navigations.OrderBy(item => GetContact(item).Birthday.ToString()),
+
+                    "По имени" => model.Contact.FriendContactid1Navigations.OrderBy(item => GetContact(item).Name),
+                    _ => model.Contact.FriendContactid1Navigations.OrderBy(item => GetContact(item).Contactid)
+                })
+                .Skip(model.CurrentPage * model.RecordOnPage).Take(model.RecordOnPage).ToImmutableList();
 
                 this.ViewBag.EditingModel.GenderTypes = await dbcontext.Gendertypes.ToListAsync();
                 this.ViewBag.EditingModel.Cities = await dbcontext.Cities.ToListAsync();

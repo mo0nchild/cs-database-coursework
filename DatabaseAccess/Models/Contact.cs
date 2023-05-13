@@ -19,6 +19,7 @@ public partial class Contact : System.Object
 
     public string Emailaddress { get; set; } = null!;
     public string? Phonenumber { get; set; } = default;
+    public DateTime Lastupdate { get; set; } = default;
 
     public int? Locationid { get; set; } = default;
     public int Gendertypeid { get; set; } = default;

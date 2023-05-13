@@ -14,7 +14,6 @@ namespace DatabaseAccess.Configurations
         public virtual void Configure(EntityTypeBuilder<Models.Contact> entity_builder)
         {
             entity_builder.HasKey(e => e.Contactid).HasName("contact_pkey");
-
             entity_builder.ToTable("contact");
 
             entity_builder.Property(e => e.Contactid).HasColumnName("contactid");
@@ -29,6 +28,10 @@ namespace DatabaseAccess.Configurations
                 .HasDefaultValueSql("NULL::character varying")
                 .HasColumnName("familystatus");
             entity_builder.Property(e => e.Gendertypeid).HasColumnName("gendertypeid");
+            entity_builder.Property(e => e.Lastupdate)
+                .HasDefaultValueSql("'1999-01-08 04:05:06'::timestamp without time zone")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("lastupdate");
             entity_builder.Property(e => e.Locationid).HasColumnName("locationid");
             entity_builder.Property(e => e.Name).HasMaxLength(30);
             entity_builder.Property(e => e.Patronymic)
@@ -72,7 +75,6 @@ namespace DatabaseAccess.Configurations
                         j.IndexerProperty<int>("Contactid").HasColumnName("contactid");
                         j.IndexerProperty<int>("Hobbyid").HasColumnName("hobbyid");
                     });
-
             entity_builder.HasMany(d => d.Humanqualities).WithMany(p => p.Contacts)
                 .UsingEntity<Dictionary<string, object>>(
                     "ContactHumanquality",

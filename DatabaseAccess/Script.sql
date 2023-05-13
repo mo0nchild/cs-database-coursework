@@ -7,8 +7,7 @@ CREATE TABLE IF NOT EXISTS public.City (
 
 CREATE TABLE IF NOT EXISTS public.Location (
     LocationId  SERIAL      PRIMARY KEY NOT NULL,
-    Street      VARCHAR(50) NOT NULL UNIQUE,
-    "Index"     VARCHAR(10) DEFAULT NULL,
+    Street      VARCHAR(50) DEFAULT NULL,
     CityId      INTEGER     NOT NULL,
     FOREIGN KEY(CityId) REFERENCES public.City(CityId) ON DELETE CASCADE
 );
@@ -19,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.GenderType (
 );
 
 CREATE TABLE IF NOT EXISTS public.UserPicture (
-    UserPictureId   INTEGER     NOT NULL PRIMARY KEY,
+    UserPictureId   SERIAL     NOT NULL PRIMARY KEY,
     FilePath        TEXT        NOT NULL,
     pictureName     VARCHAR(50) NOT NULL
 );
@@ -41,12 +40,15 @@ CREATE TABLE IF NOT EXISTS public.Contact (
     FOREIGN KEY (UserPictureId) REFERENCES public.UserPicture(UserPictureId) ON DELETE SET DEFAULT
 );
 
+ALTER TABLE public.Contact ADD COLUMN LastUpdate TIMESTAMP NOT NULL DEFAULT '1999-01-08 04:05:06';
+
 CREATE TABLE IF NOT EXISTS public.Authorization (
     AuthorizationId SERIAL      NOT NULL PRIMARY KEY,
     Login           VARCHAR(30) NOT NULL UNIQUE,
     Password        VARCHAR(30) NOT NULL,
     ContactId       INTEGER     NOT NULL UNIQUE,
     IsAdmin         BOOLEAN     NOT NULL,
+    ReferenceGuid   VARCHAR(40) NOT NULL UNIQUE,
     FOREIGN KEY (ContactId) REFERENCES public.Contact(ContactId) ON DELETE CASCADE
 );
 
