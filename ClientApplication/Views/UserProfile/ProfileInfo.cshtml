@@ -4,15 +4,19 @@
 @{
     const UserProfileModel.PageMode settingsMode = UserProfileModel.PageMode.Settings;
     const UserProfileModel.PageMode contactMode = UserProfileModel.PageMode.Contacts;
+    const string underlineClass = "border-bottom border-3";
 
     this.ViewBag.Title = this.Model.Contact.Authorization!.Login;
+    var contactId = this.Model.Contact.Contactid;
     var searchingParameters = new ViewDataDictionary(this.ViewData) 
     { 
         ["SortingType"] = this.Model.SortingType, ["ProfileType"] = this.Model.ProfileType,
         ["RecordOnPage"] = this.Model.RecordOnPage, ["CurrentPage"] = this.Model.CurrentPage,
-        ["PagesCount"] = this.Model.PagesCount
+        ["PagesCount"] = this.Model.PagesCount, ["Message"] = this.Model.ErrorMessage,
+        ["DatingTypes"] = this.ViewBag.EditingModel.Datingtypes
     };
-    const string underlineClass = "border-bottom border-3";
+    var friendsList = this.Model.Contact.FriendContactid1Navigations.Select(
+        item => new KeyValuePair<Datingtype, Contact>(item.Datingtype!, item.Contactid2Navigation));
 }
 @switch(this.Model.Mode)
 {
@@ -20,9 +24,7 @@
     <component type="typeof(ProfilePage)" render-mode="ServerPrerendered" param-Contact="this.Model.Contact"
         param-EditingModel="(ProfileEditingModel)this.ViewBag.EditingModel" param-ErrorMessage="this.Model.ErrorMessage"/>
         break;
-    case UserProfileModel.PageMode.Contacts:
-        @await this.Html.PartialAsync("ContactList", this.Model.Contact.FriendContactid1Navigations
-            .Select(item => item.Contactid2Navigation).ToList(), searchingParameters);
+    case UserProfileModel.PageMode.Contacts: @await this.Html.PartialAsync("ContactList", friendsList, searchingParameters);
         break;
 }
 @section Scripts {

@@ -18,7 +18,7 @@ namespace ClientApplication.Filters
             var nameValue = context.HttpContext.Request.Form["name"].FirstOrDefault();
             var streetValue = context.HttpContext.Request.Form["street"].FirstOrDefault();
 
-            var errorModel = new ViewModels.UserProfileModel()
+            var errorModel = new ViewModels.UserBaseModel()
             {
                 HasError = true, Mode = ViewModels.UserProfileModel.PageMode.Settings, ErrorMessage = string.Empty
             };

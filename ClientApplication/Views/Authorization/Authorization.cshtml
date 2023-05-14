@@ -168,7 +168,7 @@
             <div class="form-text mb-2 text-danger">
                 &nbsp @if(this.Model.HasError) { <text>@(this.Model.ErrorCause ?? "Неверные данные")</text> } 
             </div>
-            @this.Html.Hidden("id", 0);
+            @this.Html.Hidden("id", 0)
             <div class="d-flex justify-content-center mx-auto">
                 <input class="btn btn-success w-100 fs-5" type="submit"
                     style="background-color:var(--main-color);border-color:var(--main-color)" value="Регистрация"/>

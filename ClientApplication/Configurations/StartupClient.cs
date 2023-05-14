@@ -36,12 +36,13 @@ namespace ClientApplication.Configurations
             {
                 options.ModelBinderProviders.Insert(0, new ContractModelBinder.ContractModelBinderProvider());
             });
-            services.AddDbContextFactory<DatabaseContext>((options) =>
+            services.AddDbContextFactory<DatabaseContext>((DbContextOptionsBuilder options) =>
             {
                 if (options is DbContextOptionsBuilder<DatabaseContext> converted_options)
                 { new DatabaseContextFactory.DatabaseConfigure(converted_options!).ConfigureOptions(); }
             });
             services.AddSignalR(options => options.MaximumReceiveMessageSize = 102400000L);
+            services.AddTransient<Services.IDatabaseContact, Services.DatabaseContact>();
         }
         protected override void ConfigureApplication(WebApplication application, IWebHostEnvironment env)
         {

@@ -1,11 +1,14 @@
 ﻿
-@model ICollection<DatabaseAccess.Models.Contact>
+@using DAModels = DatabaseAccess.Models;
+@model IEnumerable<KeyValuePair<DAModels::Datingtype, DAModels::Contact>>
 @{
     var sortingTypes = new string[] { "Без сортировки", "По имени", "По дате изменения", "По дате рождения" };
     var profileTypes = new string[] { "Все контакты", "Аккаунты", "Созданные", };
 
+    var datingTypes = new SelectList(((List<DAModels::Datingtype>)this.ViewBag.DatingTypes).Select(item => item.Typeofdating));
+
     const string cardStyle = "card m-2 m-sm-3 shadow-sm border border-secondary flex-row flex-sm-column";
-    void RenderCardBody(string name, string email, string phone, bool isAccount)
+    void RenderCardBody(string name, string email, string phone, bool isAccount, string datingtype)
     {
         var textOverflow = "overflow:hidden;white-space:nowrap;text-overflow:ellipsis";
         var buttonStyle = "background-color:var(--main-color);border-color:var(--main-color);";
@@ -18,6 +21,9 @@
                     </span> 
                 }
             </h5>
+            <p class="card-text w-100 m-0" style="color:var(--main-color);font-size:14px;@(textOverflow)">
+                Отношения: @datingtype
+            </p>
             <p class="card-text w-100 mb-0" style="@(textOverflow)"><i class="bi bi-mailbox"></i>&nbsp;@email</p>
             <p class="card-text w-100 mb-3" style="@(textOverflow)">
                 <i class="bi bi-telephone-forward"></i>&nbsp;@((phone == default ? "Не установлено" : phone))
@@ -44,6 +50,13 @@
     }
 }
 <div class="container p-0 my-5">
+    @if(this.ViewData["Message"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert" style="border-radius:16px;">
+            <strong>Уведомление!</strong>&nbsp;@this.ViewData["Message"]!.ToString()!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
     <div class="row mb-0 justify-content-between">
 
         <div class="col-12 col-md-6 text-center text-md-start mb-3 mb-md-0">
@@ -63,14 +76,38 @@
                 </button>
             </div>
             }
-            @using (this.Html.BeginForm())
-            {
             <div class="d-flex justify-content-center mx-2">
-                <button class="btn btn-success w-100 fs-5" type="submit" style="background-color:var(--main-color);border-color:var(--main-color)">
+                <button class="btn btn-success w-100 fs-5" style="background-color:var(--main-color);border-color:var(--main-color)"
+                    data-bs-toggle="collapse" href="#collapseSearch">
                     <i class="bi bi-person-fill-add"></i>
                 </button>
             </div>
-            }
+        </div>
+    </div>
+    <div class="row collapse my-3 justify-content-end" id="collapseSearch">
+        <div class="col-12 col-sm-6">
+            <div class="shadow-sm border border-secondary p-4" style="border-radius: 10px;">
+
+                <label class="form-label" style="color:var(--main-color);">Строка для добавления контакта через ссылку:</label>
+                @using (this.Html.BeginForm("UseReferenceLink", "UserContacts", FormMethod.Post, new { @class="d-flex flex-row mb-3"}))
+                {
+                <div class="d-flex input-group flex-grow-1">
+                    <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                    @this.Html.TextBox("link", "", new { @class="form-control", placeholder="Ссылка контакта/Email", maxlength="100", style="flex:2;" })
+                    @this.Html.DropDownList("datingtype", datingTypes, new { @class="form-select", style="flex:1;" })
+                </div>
+                <div class="d-flex mx-2">
+                    <button type="submit" class="btn btn-success form-control" 
+                        style="background-color:var(--main-color);border-color:var(--main-color);"> <i class="bi bi-plus-circle"></i>
+                    </button>
+                </div>
+                }
+                <div class="d-flex input-group flex-grow-1">
+                    <span class="input-group-text flex-grow-1">Создать новый контакт: </span>
+                    @this.Html.ActionLink("Начать", "BuildContact", "UserContacts", null, new { @class="form-control btn btn-primary", 
+                        placeholder="Ссылка контакта/Email", style="background-color:var(--main-color);border-color:var(--main-color);" })
+                </div>
+            </div>
         </div>
     </div>
     @using (this.Html.BeginForm("ProfileInfo", "UserProfile", FormMethod.Get, new { @class="row mb-3 justify-content-end" }))
@@ -119,23 +156,25 @@
     </div>
     @this.Html.Hidden("Mode", UserProfileModel.PageMode.Contacts);
     }
-    <div class="row mb-3 gx-2 justify-content-center row-cols-1 row-cols-md-3 row-cols-sm-2 row-cols-lg-4 row-cols-xl-4">
-        @foreach(var friendRecord in this.Model)
+    <div class="row mb-3 gx-2 justify-content-center row-cols-1 row-cols-md-3 row-cols-sm-2 row-cols-lg-4 row-cols-xl-5">
+        @foreach(KeyValuePair<DAModels::Datingtype, DAModels::Contact> friendRecord in this.Model)
         {
         <div class="col mb-1 mb-sm-3">
             <div class="@cardStyle d-none d-sm-flex" style="border-radius:16px;">
-                <img src="@friendRecord.Userpicture!.Filepath" class="card-img-top w-75 p-3 align-self-center" alt="...">
-                @{RenderCardBody($"{friendRecord.Name} {friendRecord.Surname}", friendRecord.Emailaddress, 
-                    friendRecord!.Phonenumber, friendRecord.Authorization != null);}
+                <img src="@friendRecord.Value.Userpicture!.Filepath" class="card-img-top w-75 p-3 align-self-center" alt="...">
+
+                @{RenderCardBody($"{friendRecord.Value.Name} {friendRecord.Value.Surname}", friendRecord.Value.Emailaddress, 
+                    friendRecord.Value!.Phonenumber!, friendRecord.Value.Authorization != null, friendRecord.Key.Typeofdating);}
             </div>
             <div class="@cardStyle d-sm-none d-inline-flex" style="border-radius:14px;">
-                <img src="@friendRecord.Userpicture!.Filepath" class="card-img-top w-25 p-3 align-self-center" alt="...">
-                @{RenderCardBody($"{friendRecord.Name} {friendRecord.Surname}", friendRecord.Emailaddress, 
-                    friendRecord!.Phonenumber, friendRecord.Authorization != null);}
+                <img src="@friendRecord.Value.Userpicture!.Filepath" class="card-img-top w-25 p-3 align-self-center" alt="...">
+
+                @{RenderCardBody($"{friendRecord.Value.Name} {friendRecord.Value.Surname}", friendRecord.Value.Emailaddress, 
+                    friendRecord.Value!.Phonenumber!, friendRecord.Value.Authorization != null, friendRecord.Key.Typeofdating);}
             </div>
         </div>
         }
-        @if(this.Model.Count <= 0) { 
+        @if(this.Model.Count() <= 0) { 
         <div class="col w-100 m-3 text-center">
             <span class="fs-4" style="color:var(--main-color)">Еще не добавлено ни одного контакта</span>
         </div> 

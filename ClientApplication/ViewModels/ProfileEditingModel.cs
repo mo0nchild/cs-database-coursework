@@ -10,6 +10,7 @@
         public List<DAModels::Userpicture> Pictures { get; set; } = default!;
         public List<DAModels::City> Cities { get; set; } = default!;
         public List<DAModels::Post> Postes { get; set; } = default!;
+        public List<DAModels::Datingtype> Datingtypes { get; set; } = default!;
 
         public ProfileEditingModel() : base() { }
     }

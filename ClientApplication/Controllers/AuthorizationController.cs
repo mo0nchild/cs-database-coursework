@@ -50,8 +50,6 @@ namespace ClientApplication.Controllers
                     .Where((item) => (item.Login == login || item.Contact.Emailaddress == login) 
                     && item.Password == password).FirstOrDefault();
 
-                //if (userProfile == null) return base.RedirectToRoute("authorization", new RouteValueDictionary()
-                //{ ["haserror"] = true, ["mode"] = AuthorizationMode.Login, ["errorcause"] = "" });
                 if (userProfile == null) return base.RedirectToRoute("authorization", new AuthorizationModel
                 { ErrorCause = "", Mode = AuthorizationMode.Login, HasError = true });
             }
@@ -110,6 +108,7 @@ namespace ClientApplication.Controllers
                 profile.Gendertype = (await dbcontext.Gendertypes.Where((DAModels::Gendertype item) 
                     => item.Gendertypename == profile.Gendertype.Gendertypename).FirstOrDefaultAsync())!;
 
+                profile.Lastupdate = DateTime.Now;
                 profile.Userpicture = await dbcontext.Userpictures.FirstAsync();
                 while (referenceCollision != 0) 
                 {

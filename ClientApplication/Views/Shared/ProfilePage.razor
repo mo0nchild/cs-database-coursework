@@ -9,6 +9,14 @@
 @inject IHttpClientFactory HttpFactory
 
 <div class="container p-0 my-5">
+    @if(this.ErrorMessage != null)
+    {
+    <div class="mb-4 alert alert-danger alert-dismissible fade show" role="alert" style="border-radius:16px;">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>Уведомление!</strong>&nbsp;@this.ErrorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    }
     <div class="row mb-4 justify-content-md-between">
 
         <div class="col-md-3 col-12 mb-4">
@@ -26,6 +34,14 @@
                 <div class="d-sm-none d-none d-md-block mb-3">
                     <SettingsTabs @bind-ComponentValue="@this.SelectedTab" />
                 </div>
+                @if(this.SetDatingType == true)
+                {
+                <div class="mb-3">
+                    <TextSelect ItemId="typeofdating" @bind-ComponentValue="@this.CurrentDatingType" 
+                        LabelTitle="Тип знакомства" GroupIcon="bi bi-diagram-3-fill"
+                        ElementList="this.EditingModel.Datingtypes.Select(item => item.Typeofdating).ToList()"/>
+                </div>
+                }
                 @if(this.IsReadonly == false) 
                 {
                 <ModalDialog ButtonText="Сохранить">
@@ -69,6 +85,7 @@
                         <input type="hidden" name="quality[@index]" 
                             value="@this.Contact.Humanqualities.ElementAt(index).Qualityname"/>
                     }
+                    @if(this.SetDatingType) { <input type="hidden" name="datingtype" value="@this.CurrentDatingType"/> }
                 </ModalDialog>
                 }
             </div>
@@ -78,9 +95,9 @@
                 <label class="form-label mb-2 fs-5 fw-semibold" style="color:var(--main-color);">
                     Просмотр информации контакта:
                 </label>
-                <div class="form-text mb-2 text-danger">
+               @* <div class="form-text mb-2 text-danger">
                     &nbsp @if(this.ErrorMessage != null) { <text>@(this.ErrorMessage)</text> } 
-                </div>
+                </div>*@
             @switch(this.SelectedTab)
             {
             case SelectedTabType.Details:
@@ -95,19 +112,21 @@
                 </div>
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextField ItemId="contact-patronymic" LabelTitle="Отчество" @bind-ComponentValue="@this.Contact.Patronymic"
-                        Placeholder="Ваше отчество"/>
+                        Placeholder="Ваше отчество" IsValid="@(this.ErrorMessage == null)"/>
                 </div>
                 <div class="form-text">Диапазон вводимых символов от 5 до 30 знаков</div>
             </div>
             <div class="row mb-3">
                 <div class="col-12 col-md-6">
                     <TextField ItemId="contact-phone" LabelTitle="Телефон" @bind-ComponentValue="@this.Contact.Phonenumber"
-                        Placeholder="Пример: +79001001010" GroupIcon="bi bi-telephone-forward" MaxLength="12"/>
+                        Placeholder="Пример: +79001001010" GroupIcon="bi bi-telephone-forward" MaxLength="12"
+                        IsValid="@(this.ErrorMessage == null)"/>
                     <div class="form-text">Диапазон вводимых символов 12 знаков</div>
                 </div>
                 <div class="col-12 col-md-6">
                     <TextField ItemId="contact-email" LabelTitle="Email" @bind-ComponentValue="@this.Contact.Emailaddress"
-                        Placeholder="Пример: example@gmail.com" GroupIcon="bi bi-mailbox2" MaxLength="100"/>
+                        Placeholder="Пример: example@gmail.com" GroupIcon="bi bi-mailbox2" MaxLength="100"
+                        IsValid="@(this.ErrorMessage == null)"/>
                     <div class="form-text">Диапазон вводимых символов от 10 до 100 знаков</div>
                 </div>
                 <div class="col-md-12 col-12 bg-secondary mt-4 my-st-4" style="height:1px;"></div>
@@ -295,8 +314,9 @@
     [ParameterAttribute] public DAModels::Contact Contact { get; set; } = default!;
     [ParameterAttribute] public ProfileEditingModel EditingModel { get; set; } = default!;
 
-    [ParameterAttribute] public string?  ErrorMessage { get; set; } = default!;
+    [ParameterAttribute] public string? ErrorMessage { get; set; } = default!;
     [ParameterAttribute] public bool IsReadonly { get; set; } = default!;
+    [ParameterAttribute] public bool SetDatingType { get; set; } = default!;
 
     public enum SelectedTabType : sbyte { Details, Employee, QualityHobby  }
     public SelectedTabType SelectedTab { get; set; } = default;
@@ -322,6 +342,8 @@
             this.Logger.LogInformation($"City: {ContactLocation}; Country: {this.Contact.Location!.City.Country}");
         }
     }
+    protected virtual string CurrentDatingType { get; set; } = default!;
+
     protected virtual bool CurrentEmployeeIsValid { get; set; } = true;
     protected DAModels::Employee CurrentEmployee { get; set; } = default!;
 
@@ -385,11 +407,9 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        this.Contact.Location ??= new DAModels.Location() 
-        {
-            City = new() { Cityname = "Не установлено", Country = "Не установлено" } 
-        };
-        this.EditingModel.Cities.Insert(0, Contact.Location.City);
+        this.EditingModel.Cities.Insert(0, new() { Cityname = "Не установлено", Country = "Не установлено" });
+
+        this.Contact.Location ??= new DAModels.Location() { City = this.EditingModel.Cities[0] };
         this.CurrentEmployee = new DAModels::Employee() 
         { 
             Post = new() { Postname = this.EditingModel.Postes.First().Postname },
