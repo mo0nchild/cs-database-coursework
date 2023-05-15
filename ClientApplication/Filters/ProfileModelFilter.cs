@@ -13,7 +13,6 @@ namespace ClientApplication.Filters
         {
             var idValue = context.HttpContext.Request.Form["id"].FirstOrDefault();
             if (context.HttpContext.Request.Form["validate"].FirstOrDefault() == null) return;
-
             var phoneValue = context.HttpContext.Request.Form["phone"].FirstOrDefault();
             var emailValue = context.HttpContext.Request.Form["email"].FirstOrDefault();
 

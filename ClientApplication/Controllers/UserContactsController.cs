@@ -39,8 +39,12 @@ namespace ClientApplication.Controllers
             { Contact = await DatabaseContact.InitializeContact() };
             else model.Contact = (await this.DatabaseContact.GetContact(model.SelectedContact, string.Empty))!;
 
+            Console.WriteLine($"\nselected: {model.SelectedContact}");
+
             model.FormRequestLink = string.Format("{0}/{1}", UserContactsController.ControllerRoute,
-                model == null ? "addcontact" : "editcontact");
+                model.SelectedContact == default ? "addcontact" : "editcontact");
+
+            Console.WriteLine($"\nFormRequestLink:{model.FormRequestLink}");
 
             if (model!.Contact == null) return base.RedirectToRoute("profile", new UserProfileModel()
             { ErrorMessage = "Контакт не найден" });
@@ -79,6 +83,8 @@ namespace ClientApplication.Controllers
             [FromForm]string datingtype)
         {
             var authorizatedProfile = this.HttpContext.User.FindFirst(ClaimTypes.PrimarySid)!;
+
+            Console.WriteLine($"\nid1:{contactModel}, id2: {int.Parse(authorizatedProfile.Value)}");
             var resultModel = new ViewModels.UserProfileModel()
             {
                 Mode = UserBaseModel.PageMode.Contacts, ErrorMessage = default!, HasError = default,
