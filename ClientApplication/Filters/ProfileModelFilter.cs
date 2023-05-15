@@ -27,10 +27,12 @@ namespace ClientApplication.Filters
             };
             foreach (var propertyValue in new[] { surnameValue, nameValue })
             {
-                if (propertyValue != null && Regex.IsMatch(propertyValue, @"[А-Яа-я\w]{5,}")) continue;
+                if (propertyValue != null && Regex.IsMatch(propertyValue, @"[А-Яа-я\w]{4,}")) continue;
 
                 errorModel.ErrorMessage = $"Введено неверное значение ФИО: " +
                         $"{propertyValue?.Substring(0, propertyValue.Length > 20 ? 20 : propertyValue.Length)}";
+
+                Console.WriteLine($"\nerrorModel: {errorModel.ErrorMessage}");
 
                 context.Result = new RedirectToRouteResult(this.routeToRedirect, errorModel); return;
             }
@@ -47,7 +49,6 @@ namespace ClientApplication.Filters
                 errorModel.ErrorMessage = $"Введено неверное значение контактов: {(!emailMatch ? emailValue : phoneValue)}";
                 context.Result = new RedirectToRouteResult(this.routeToRedirect, errorModel); return;
             }
-            
         }
         public virtual void OnActionExecuted(ActionExecutedContext context) { }
     }

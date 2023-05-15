@@ -21,28 +21,33 @@
     @if (this.Model.IsAccount)
     {
     <div class="row mx-1 mb-4">
-        <div class="col-12 col-md-6 shadow-sm border border-secondary p-3 mb-4 mb-md-0" style="border-radius:12px;">
-            <label class="form-label mb-2 fs-5 fw-semibold" style="color:var(--main-color);">
-                <i class="bi bi-clipboard-check"></i>&nbsp;Список связанных контактов:
-            </label>
-            @await this.Component.InvokeAsync("ContactFriends", new { profileId = this.Model.Contact.Contactid })
-        </div>
-        <div class="col-12 col-md-6 shadow-sm border border-secondary p-3 " style="border-radius:12px;">
-            <label class="form-label mb-2 fs-5 fw-semibold" style="color:var(--main-color);">
-                <i class="bi bi-chat-dots"></i>&nbsp;Список сообщений:
-            </label>
-            @await this.Component.InvokeAsync("FriendMessages", new { profileId = this.Model.Contact.Contactid })
-            @using(this.Html.BeginForm("TextMessage", "UserContacts", FormMethod.Post, 
-                new { @class="d-flex flex-row my-3" }))
-            {
-            <input type="hidden" name="friend" value="@this.Model.SelectedContact"/>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-card-text"></i></span>
-                <input type="text" name="text" class="form-control" placeholder="Username"/>
+        <div class="col-12 col-md-6">
+            <div class="shadow-sm border border-secondary p-3 mb-4 mb-md-0" style="border-radius:12px;">
+                <label class="form-label mb-2 fs-5 fw-semibold" style="color:var(--main-color);">
+                    <i class="bi bi-clipboard-check"></i>&nbsp;Список связанных контактов:
+                </label>
+                @await this.Component.InvokeAsync("ContactFriends", new { profileId = this.Model.Contact.Contactid })
             </div>
-            <input type="submit" class="btn btn-success mx-2" value="Отправить"
-                style="background-color:var(--main-color);border-color:var(--main-color);"/>
-            }
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="shadow-sm border border-secondary p-3 d-flex flex-column h-100" 
+                style="border-radius:12px;">
+                <label class="form-label mb-2 fs-5 fw-semibold" style="color:var(--main-color);">
+                    <i class="bi bi-chat-dots"></i>&nbsp;Список сообщений:
+                </label>
+                @await this.Component.InvokeAsync("FriendMessages", new { profileId = this.Model.Contact.Contactid })
+                @using(this.Html.BeginForm("TextMessage", "UserContacts", FormMethod.Post, 
+                    new { @class="d-flex flex-row my-3 " }))
+                {
+                <input type="hidden" name="friend" value="@this.Model.SelectedContact"/>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                    <input type="text" name="text" class="form-control" placeholder="Username"/>
+                </div>
+                <input type="submit" class="btn btn-success mx-2" value="Отправить"
+                    style="background-color:var(--main-color);border-color:var(--main-color);"/>
+                }    
+            </div>
         </div>
     </div>
     

@@ -35,11 +35,11 @@ namespace ClientApplication.Controllers
         [HttpGetAttribute, RouteAttribute("buildcontact", Name = "buildcontact")]
         public async Task<IActionResult> BuildContact(UserContactsModel model)
         {
-            if (model.SelectedContact == default) model = new UserContactsModel() 
-            { Contact = await DatabaseContact.InitializeContact() };
+            if (model.SelectedContact == default) model.Contact = await DatabaseContact.InitializeContact();
             else model.Contact = (await this.DatabaseContact.GetContact(model.SelectedContact, string.Empty))!;
 
             Console.WriteLine($"\nselected: {model.SelectedContact}");
+            Console.WriteLine($"\nmodel error: {model.ErrorMessage}");
 
             model.FormRequestLink = string.Format("{0}/{1}", UserContactsController.ControllerRoute,
                 model.SelectedContact == default ? "addcontact" : "editcontact");
@@ -49,6 +49,8 @@ namespace ClientApplication.Controllers
             if (model!.Contact == null) return base.RedirectToRoute("profile", new UserProfileModel()
             { ErrorMessage = "Контакт не найден" });
             else model.IsAccount = model.Contact.Authorization != null;
+
+            Console.WriteLine($"\nerror: {model.ErrorMessage}");
 
             var authorizatedProfile = this.HttpContext.User.FindFirst(ClaimTypes.PrimarySid)!;
             var friend = model.Contact.FriendContactid1Navigations.FirstOrDefault(item =>

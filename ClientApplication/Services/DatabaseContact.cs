@@ -37,6 +37,7 @@ namespace ClientApplication.Services
         {
             using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
             {
+                var phoneValue = contactModel.Phonenumber == string.Empty ? null : contactModel.Phonenumber;
                 dbcontext.Contacts.Where(record => record.Contactid == contactModel.Contactid).ExecuteUpdate(prop => prop
                     .SetProperty(item => item.Surname, item => contactModel.Surname)
                     .SetProperty(item => item.Name, item => contactModel.Name)
@@ -44,13 +45,12 @@ namespace ClientApplication.Services
                     .SetProperty(item => item.Birthday, item => contactModel.Birthday)
 
                     .SetProperty(item => item.Emailaddress, item => contactModel.Emailaddress)
-                    .SetProperty(item => item.Phonenumber, item => contactModel.Phonenumber)
                     .SetProperty(item => item.Lastupdate, item => DateTime.Now)
+                    .SetProperty(item => item.Phonenumber, item => phoneValue)
                     .SetProperty(item => item.Familystatus, item => contactModel.Familystatus));
 
                 var userContact = await dbcontext.Contacts.Include(prop => prop.Employees).Include(prop => prop.Hobbies)
                     .Include(prop => prop.Humanqualities).FirstAsync(item => item.Contactid == contactModel.Contactid);
-
                 if (userContact == null) return new IDatabaseContact.ErrorStatus("Запись о контакте не найдена");
 
                 userContact.Gendertype = (await dbcontext.Gendertypes.Where((DAModels::Gendertype item)
@@ -154,8 +154,6 @@ namespace ClientApplication.Services
                 var collision1 = profile1.FriendContactid1Navigations.Where(item => item.Contactid2 == profile2.Contactid);
                 var collision2 = profile1.FriendContactid2Navigations.Where(item => item.Contactid1 == profile2.Contactid);
 
-                Console.WriteLine($"\n\ncollision1: {collision1.Count()}, collision2: {collision2.Count()}\n");
-
                 var datingRecord = await dbcontext.Datingtypes.FirstOrDefaultAsync(item => item.Typeofdating ==
                     datingtype.Typeofdating);
                 if (datingRecord == null || (profile1.Contactid == profile2.Contactid))
@@ -232,7 +230,7 @@ namespace ClientApplication.Services
             var resultModel = new DAModels::Contact()
             {
                 Birthday = DateTime.Now, Emailaddress = string.Empty, Phonenumber = string.Empty,
-                Surname = string.Empty, Name = string.Empty, Patronymic = string.Empty, 
+                Surname = string.Empty, Name = string.Empty, Patronymic = string.Empty,
             };
             using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
             {

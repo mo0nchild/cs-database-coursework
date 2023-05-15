@@ -48,10 +48,11 @@
                     <input type="hidden" name="id" value="@this.Contact.Contactid"/>
                     <input type="hidden" name="surname" value="@this.Contact.Surname"/>
                     <input type="hidden" name="name" value="@this.Contact.Name"/>
+                    <input type="hidden" name="validate" value="true"/>
 
                     <input type="hidden" name="patronymic" value="@this.Contact.Patronymic"/>
                     <input type="hidden" name="email" value="@this.Contact.Emailaddress"/>
-                    @if(this.Contact.Phonenumber != string.Empty)
+                    @if(this.Contact.Phonenumber != "" && this.Contact.Phonenumber != null)
                     { <input type="hidden" name="phone" value="@this.Contact.Phonenumber"/> }
 
                     <input type="hidden" name="family" value="@this.Contact.Familystatus"/>
