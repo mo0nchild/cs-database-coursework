@@ -1,0 +1,19 @@
+﻿@model List<DatabaseAccess.Models.Message>
+@{
+    string ChooseSide(bool check) => (check ? "justify-content-end" : "justify-content-start");
+}
+<div id="messanger" class="border-top py-3" style="overflow:scroll;max-height:200px;">
+     @foreach(var item in this.Model)
+    {
+    <div class="mb-3 d-flex flex-row flex-nowrap @(ChooseSide(item.Contact != null))">
+        <div class="shadow-sm border border-secondary p2 p-3" style="border-radius:16px;max-width:60%;">
+
+            <p class="m-0" style="color:var(--main-color);font-size:18px;">
+                @((item.Contact == null ? "Вы:" : $"{item.Contact.Name}: "))
+            </p>
+            <p class="m-0">@item.Messagebody</p>
+            <p class="m-0">@item.Sendtime.TimeOfDay.ToString()</p>
+        </div>
+    </div>
+    }
+</div>

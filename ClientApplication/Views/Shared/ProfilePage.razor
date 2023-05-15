@@ -8,7 +8,7 @@
 @inject ILogger<ProfilePage> Logger
 @inject IHttpClientFactory HttpFactory
 
-<div class="container p-0 my-5">
+<div class="container p-0">
     @if(this.ErrorMessage != null)
     {
     <div class="mb-4 alert alert-danger alert-dismissible fade show" role="alert" style="border-radius:16px;">
@@ -37,20 +37,22 @@
                 @if(this.SetDatingType == true)
                 {
                 <div class="mb-3">
-                    <TextSelect ItemId="typeofdating" @bind-ComponentValue="@this.CurrentDatingType" 
+                    <TextSelect ItemId="typeofdating" @bind-ComponentValue="@this.DatingType.Typeofdating" 
                         LabelTitle="Тип знакомства" GroupIcon="bi bi-diagram-3-fill"
                         ElementList="this.EditingModel.Datingtypes.Select(item => item.Typeofdating).ToList()"/>
                 </div>
                 }
-                @if(this.IsReadonly == false) 
-                {
-                <ModalDialog ButtonText="Сохранить">
+                <ModalDialog ButtonText="Сохранить" FormRequestLink="@this.FormRequestLink">
+                @*@if(this.IsReadonly != true)
+                {*@
                     <input type="hidden" name="id" value="@this.Contact.Contactid"/>
                     <input type="hidden" name="surname" value="@this.Contact.Surname"/>
                     <input type="hidden" name="name" value="@this.Contact.Name"/>
+
                     <input type="hidden" name="patronymic" value="@this.Contact.Patronymic"/>
-                    <input type="hidden" name="phone" value="@this.Contact.Phonenumber"/>
                     <input type="hidden" name="email" value="@this.Contact.Emailaddress"/>
+                    @if(this.Contact.Phonenumber != string.Empty)
+                    { <input type="hidden" name="phone" value="@this.Contact.Phonenumber"/> }
 
                     <input type="hidden" name="family" value="@this.Contact.Familystatus"/>
                     <input type="hidden" name="birthday" value="@this.Contact.Birthday"/>
@@ -85,9 +87,12 @@
                         <input type="hidden" name="quality[@index]" 
                             value="@this.Contact.Humanqualities.ElementAt(index).Qualityname"/>
                     }
-                    @if(this.SetDatingType) { <input type="hidden" name="datingtype" value="@this.CurrentDatingType"/> }
+                @*}*@
+                    @if(this.SetDatingType) 
+                    { <input type="hidden" name="datingType" value="@this.DatingType.Typeofdating"/> }
                 </ModalDialog>
-                }
+                @if(this.IsReadonly != true)
+                { <a class="btn btn btn-outline-danger mt-2 w-100" role="button" href="/user/deletecontact/@(this.Contact.Contactid)">Удалить</a> }
             </div>
         </div>
         <div class="col-md-9 col-12">
@@ -104,15 +109,15 @@
             <div class="row mb-3">
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextField ItemId="contact-surname" LabelTitle="Фамилия" @bind-ComponentValue="@this.Contact.Surname"
-                        Placeholder="Ваша фамилия" IsValid="@(this.ErrorMessage == null)"/>
+                        Placeholder="Ваша фамилия" IsValid="@(this.ErrorMessage == null)" IsReadonly="@this.IsReadonly"/>
                 </div>
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextField ItemId="contact-name" LabelTitle="Имя" @bind-ComponentValue="@this.Contact.Name"
-                        Placeholder="Ваше имя" IsValid="@(this.ErrorMessage == null)"/>
+                        Placeholder="Ваше имя" IsValid="@(this.ErrorMessage == null)" IsReadonly="@this.IsReadonly"/>
                 </div>
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextField ItemId="contact-patronymic" LabelTitle="Отчество" @bind-ComponentValue="@this.Contact.Patronymic"
-                        Placeholder="Ваше отчество" IsValid="@(this.ErrorMessage == null)"/>
+                        Placeholder="Ваше отчество" IsValid="@(this.ErrorMessage == null)" IsReadonly="@this.IsReadonly"/>
                 </div>
                 <div class="form-text">Диапазон вводимых символов от 5 до 30 знаков</div>
             </div>
@@ -120,13 +125,13 @@
                 <div class="col-12 col-md-6">
                     <TextField ItemId="contact-phone" LabelTitle="Телефон" @bind-ComponentValue="@this.Contact.Phonenumber"
                         Placeholder="Пример: +79001001010" GroupIcon="bi bi-telephone-forward" MaxLength="12"
-                        IsValid="@(this.ErrorMessage == null)"/>
+                        IsValid="@(this.ErrorMessage == null)" IsReadonly="@this.IsReadonly"/>
                     <div class="form-text">Диапазон вводимых символов 12 знаков</div>
                 </div>
                 <div class="col-12 col-md-6">
                     <TextField ItemId="contact-email" LabelTitle="Email" @bind-ComponentValue="@this.Contact.Emailaddress"
                         Placeholder="Пример: example@gmail.com" GroupIcon="bi bi-mailbox2" MaxLength="100"
-                        IsValid="@(this.ErrorMessage == null)"/>
+                        IsValid="@(this.ErrorMessage == null)" IsReadonly="@this.IsReadonly"/>
                     <div class="form-text">Диапазон вводимых символов от 10 до 100 знаков</div>
                 </div>
                 <div class="col-md-12 col-12 bg-secondary mt-4 my-st-4" style="height:1px;"></div>
@@ -135,23 +140,25 @@
             <div class="row mb-3">
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextSelect ItemId="contact-gender" @bind-ComponentValue="@this.Contact.Gendertype.Gendertypename" 
-                        LabelTitle="Пол" GroupIcon="bi bi-universal-access-circle"
+                        LabelTitle="Пол" GroupIcon="bi bi-universal-access-circle" IsReadonly="@this.IsReadonly"
                         ElementList="this.EditingModel.GenderTypes.Select(item => item.Gendertypename).ToList()"/>
                 </div>
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextSelect ItemId="contact-family" @bind-ComponentValue="@this.Contact.Familystatus" 
-                        LabelTitle="Семейный статус" GroupIcon="bi bi-people-fill" 
+                        LabelTitle="Семейный статус" GroupIcon="bi bi-people-fill" IsReadonly="@this.IsReadonly"
                         ElementList="@((new [] { "В браке", "В поиске", "Холост", "Все сложно", "Не указывать" }).ToList())"/>
                 </div>
                 <div class="col-12 col-lg-4 col-md-6">
                     <label for="birthday" class="form-label">День рождения:</label>
-                    <input id="birthday" class="form-control" type="date" name="birthday" @bind-value="this.Contact.Birthday"/>
+                    <input id="birthday" class="form-control" type="date" name="birthday" @bind-value="this.Contact.Birthday"
+                        readonly="@this.IsReadonly"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="user-picture" class="form-label">Аватарка:</label>
                 <div class="col-6 col-lg-4 col-md-6 gx-4" id="user-picture">
-                    <select class="form-select" size="3" @onchange="this.UserPictureChangeHandler" style="height:100px">
+                    <select class="form-select" size="3" @onchange="this.UserPictureChangeHandler" style="height:100px"
+                        disabled="@this.IsReadonly">
                     @foreach(var item in this.EditingModel.Pictures) 
                     {
                         @if(item.Filepath != this.Contact.Userpicture!.Filepath) { <option value="@item.Filepath">@item.Picturename</option> }
@@ -175,12 +182,13 @@
                 </div>
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextSelect ItemId="contact-city" @bind-ComponentValue="this.ContactLocation"
-                        LabelTitle="Город" GroupIcon="bi bi-buildings"
+                        LabelTitle="Город" GroupIcon="bi bi-buildings" IsReadonly="@this.IsReadonly"
                         ElementList="this.EditingModel.Cities.Select(item => item.Cityname).ToList()"/>
                 </div>
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextField ItemId="contact-street" LabelTitle="Улица" @bind-ComponentValue="@this.Contact.Location!.Street"
-                         Placeholder="Ваша улица" GroupIcon="bi bi-signpost-2" MaxLength="50" IsValid="@(this.ErrorMessage == null)"/>
+                         Placeholder="Ваша улица" GroupIcon="bi bi-signpost-2" MaxLength="50" IsValid="@(this.ErrorMessage == null)"
+                         IsReadonly="@this.IsReadonly"/>
                     <div class="form-text">Диапазон вводимых символов от 5 до 50 знаков</div>
                 </div>
             </div>
@@ -190,17 +198,17 @@
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextField ItemId="contact-company" LabelTitle="Название компании" Placeholder="Название вашей компании"
                          @bind-ComponentValue="@this.CurrentEmployee.Companyname" IsValid="@this.CurrentEmployeeIsValid"
-                         GroupIcon="bi bi-journal-bookmark-fill" MaxLength="50"/>
+                         GroupIcon="bi bi-journal-bookmark-fill" MaxLength="50" IsReadonly="@this.IsReadonly"/>
                     <div class="form-text">Диапазон вводимых символов от 5 до 50 знаков</div>
                 </div>
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextSelect ItemId="contact-city" @bind-ComponentValue="@this.CurrentEmployee.Post!.Postname"
-                        LabelTitle="Должность" GroupIcon="bi bi-person-video2" 
+                        LabelTitle="Должность" GroupIcon="bi bi-person-video2" IsReadonly="@this.IsReadonly"
                         ElementList="this.EditingModel.Postes.Select(item => item.Postname).ToList()"/>
                 </div>
                 <div class="col-12 col-lg-4 col-md-6">
                     <TextSelect ItemId="contact-status" @bind-ComponentValue="@this.CurrentEmployee.Status"
-                        LabelTitle="Рабочий статус" GroupIcon="bi bi-link"
+                        LabelTitle="Рабочий статус" GroupIcon="bi bi-link" IsReadonly="@this.IsReadonly"
                         ElementList="@(new() { "Не указывать", "Работает", "Уволен" })"/>
                 </div>
             </div> 
@@ -215,7 +223,8 @@
                                 <label class="form-check-label" for="firstRadio">
                                     @($"{item.Companyname} / {item.Post!.Postname} - {item.Status}")
                                 </label>
-                                <button type="button" class="btn-close" @onclick="@(value => this.Contact.Employees.Remove(item))" />
+                                <button type="button" class="btn-close" 
+                                    @onclick="@(value => { if(!this.IsReadonly) this.Contact.Employees.Remove(item); })" />
                             </li>
                         }
                         </ul>
@@ -231,7 +240,7 @@
             <div class="row mb-3">
                 <div class="col-12 col-lg-4 col-md-6 mb-3">
                     <TextSelect ItemId="contact-hobby" @bind-ComponentValue="@this.CurrentHobbyValue"
-                        LabelTitle="Название хобби" GroupIcon="bi bi-gift"
+                        LabelTitle="Название хобби" GroupIcon="bi bi-gift" IsReadonly="@this.IsReadonly"
                         ElementList="@(this.EditingModel.HobbyTypes.Select(item => item.Hobbyname).ToList())"/>
                 </div>
                 <div class="col-12 col-lg-4 col-md-6 mb-3">
@@ -258,7 +267,8 @@
                         {
                             <li class="list-group-item d-flex justify-content-between">
                                 <label class="form-check-label" for="firstRadio"> @($"{item.Hobbyname} / {item.Hobbytype}")</label>
-                                <button type="button" class="btn-close" @onclick="@(value => this.Contact.Hobbies.Remove(item))" />
+                                <button type="button" class="btn-close" 
+                                    @onclick="@(value => { if(!this.IsReadonly) this.Contact.Hobbies.Remove(item); })" />
                             </li>
                         }
                         </ul>
@@ -268,7 +278,7 @@
             <div class="row mb-3">
                 <div class="col-12 col-lg-4 col-md-6 mb-3">
                     <TextSelect ItemId="contact-quality" @bind-ComponentValue="@this.CurrentQualityValue"
-                        LabelTitle="Челоческое качество" GroupIcon="bi bi-emoji-smile-fill"
+                        LabelTitle="Челоческое качество" GroupIcon="bi bi-emoji-smile-fill" IsReadonly="@this.IsReadonly"
                         ElementList="@(this.EditingModel.QualityTypes.Select(item => item.Qualityname).ToList())"/>
                 </div>
                 <div class="col-12 col-lg-4 col-md-6 mb-3">
@@ -296,7 +306,7 @@
                             <li class="list-group-item d-flex justify-content-between">
                                 <label class="form-check-label" for="firstRadio">@($"{item.Qualityname} / {item.Qualitytype}")</label>
                                 <button type="button" class="btn-close"
-                                    @onclick="@(value => this.Contact.Humanqualities.Remove(item))" />
+                                    @onclick="@(value => { if(!this.IsReadonly) this.Contact.Humanqualities.Remove(item); })" />
                             </li>
                         }
                         </ul>
@@ -317,6 +327,9 @@
     [ParameterAttribute] public string? ErrorMessage { get; set; } = default!;
     [ParameterAttribute] public bool IsReadonly { get; set; } = default!;
     [ParameterAttribute] public bool SetDatingType { get; set; } = default!;
+
+    [ParameterAttribute, EditorRequiredAttribute]
+    public string FormRequestLink { get; set; } = default!;
 
     public enum SelectedTabType : sbyte { Details, Employee, QualityHobby  }
     public SelectedTabType SelectedTab { get; set; } = default;
@@ -342,13 +355,15 @@
             this.Logger.LogInformation($"City: {ContactLocation}; Country: {this.Contact.Location!.City.Country}");
         }
     }
-    protected virtual string CurrentDatingType { get; set; } = default!;
+    [ParameterAttribute]
+    public virtual DAModels::Datingtype DatingType { get; set; } = default!;
 
     protected virtual bool CurrentEmployeeIsValid { get; set; } = true;
     protected DAModels::Employee CurrentEmployee { get; set; } = default!;
 
     protected virtual void EmployeeClickHandler() 
     {
+        if (this.IsReadonly) return;
         var validation = this.Contact.Employees.Where(item => item.Companyname == this.CurrentEmployee.Companyname
             && item.Post!.Postname == this.CurrentEmployee.Post!.Postname).Count() <= 0;
 
@@ -375,6 +390,7 @@
     }
     protected virtual void QualityClickHandler() 
     {
+        if (this.IsReadonly) return;
         if(this.Contact.Humanqualities.Where(item => item.Qualityname == this.CurrentQualityValue).Count() <= 0)
         {
             this.Contact.Humanqualities.Add(new DAModels::Humanquality()
@@ -397,6 +413,7 @@
     }
     protected virtual void HobbyClickHandler() 
     {
+        if (this.IsReadonly) return;
         if(this.Contact.Hobbies.Where(item => item.Hobbyname == this.CurrentHobbyValue).Count() <= 0)
         {
             this.Contact.Hobbies.Add(new DAModels::Hobby()
@@ -418,6 +435,7 @@
         this.CurrentQuality = this.EditingModel.QualityTypes.First();
         this.CurrentHobby = this.EditingModel.HobbyTypes.First();
 
+        this.DatingType ??= this.EditingModel.Datingtypes.First();
         this.Logger.LogInformation($"OnInitializedAsync was called");
     }
 }

@@ -50,7 +50,7 @@ namespace ClientApplication.Infrastructure
         {
             ValueProviderResult GetProvider(string name) => bindingContext.ValueProvider.GetValue(name);
             string GetValue(string name) => GetProvider(name).FirstValue!;
-            foreach (var item in new[] { "phone", "email", "gender", "birthday", "surname", "name", "patronymic", "family", "id" })
+            foreach (var item in new[] {"email", "gender", "birthday", "surname", "name", "patronymic", "family", "id" })
             {
                 if (GetProvider(item) == ValueProviderResult.None) return this.FallbackBinder.BindModelAsync(bindingContext);
             }
@@ -63,11 +63,12 @@ namespace ClientApplication.Infrastructure
             this.BindingResult = new DAModels::Contact()
             {
                 Surname = GetValue("surname"), Name = GetValue("name"), Patronymic = GetValue("patronymic"),
-                Birthday = birthdayValue, Phonenumber = GetValue("phone"), Emailaddress = GetValue("email"),
+                Birthday = birthdayValue, Emailaddress = GetValue("email"),
 
                 Contactid = idValue, Employees = this.employeeBinder.BindingResult, Familystatus = GetValue("family"),
                 Gendertype = new DAModels::Gendertype() { Gendertypename = GetValue("gender") },
             };
+            this.BindingResult.Phonenumber = (GetProvider("phone") == ValueProviderResult.None) ? null : GetValue("phone");
             this.Logger.LogInformation("Contact binder create model");
 
             this.BindingResult.Userpicture = (GetProvider("picture") == ValueProviderResult.None) ? null

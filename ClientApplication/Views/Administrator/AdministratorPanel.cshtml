@@ -1,0 +1,121 @@
+﻿@using ClientApplication.Views.Shared;
+@using DatabaseAccess.Models;
+@model ClientApplication.ViewModels.AdministratorModel;
+@{
+    this.ViewBag.Title = "Администратор";
+
+    const UserProfileModel.PageMode settingsMode = UserProfileModel.PageMode.Settings;
+    const UserProfileModel.PageMode contactMode = UserProfileModel.PageMode.Contacts;
+
+    var sortingTypes = new string[] { "Без сортировки", "По имени", "По дате изменения", "По дате рождения" };
+    var profileTypes = new string[] { "Все контакты", "Аккаунты", "Созданные", };
+
+    var buttonStyle = "background-color:var(--main-color);border-color:var(--main-color);";
+}
+
+<div class="container my-5 p-0">
+    <div class="row shadow-sm border border-secondary p-3" style="border-radius:16px;">
+        <label class="form-label mb-2 fs-5 fw-semibold" style="color:var(--main-color);">
+            <i class="bi bi-clipboard-check"></i>&nbsp;Список контактов в системе:
+        </label>
+        @using (this.Html.BeginForm("AdministratorPanel", "Administrator", FormMethod.Get, new { @class="row mb-3 justify-content-end" }))
+        {
+        <div class="col-12 сщд-sm-6 col-lg-6">
+            <label class="form-label">Параметры сортировки:</label>
+            <div class="input-group mb-2">
+
+                <span class="input-group-text"><i class="bi bi-card-list"></i></span>
+                <select id="order" name="sortingtype" class="form-select" onchange="this.form.submit()">
+                    @foreach(var selectedItem in sortingTypes) 
+                    {
+                    if (selectedItem == this.Model.SortingType) { <option value="@selectedItem" selected>@selectedItem</option> }
+                    else { <option value="@selectedItem">@selectedItem</option> }
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="col-12 сщд-sm-6 col-lg-6">
+            <label class="form-label">Параметры отображения:</label>
+            <div class="input-group mb-2">
+
+                <span class="input-group-text"><i class="bi bi-person-square"></i></span>
+                <select id="profiletype" name="profiletype" class="form-select" onchange="this.form.submit()">
+                    @foreach(var selectedItem in profileTypes) 
+                    {
+                    if (selectedItem == this.Model.ProfileType) { <option value="@selectedItem" selected>@selectedItem</option> }
+                    else { <option value="@selectedItem">@selectedItem</option> }
+                    }
+                </select>
+            </div>
+        </div>
+        }
+        <div class="border-top" style="overflow:scroll;max-height:600px;">
+            <table class="table">
+                <thead style="color:var(--main-color);">
+                    <tr>
+                        <th scope="col">#</th> <th scope="col">Аватарка:</th> <th scope="col">Имя:</th>
+                        <th scope="col">Фамилия:</th> <th scope="col">Телефон:</th> <th scope="col">Email:</th>
+                        <th scope="col">Пол:</th> <th scope="col">Изменение:</th> 
+                        <th scope="col">День рождения:</th> <th scope="col">&nbsp;</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach(var item in this.Model.ContactsList)
+                {
+                    <tr>
+                        <th scope="row">@item.Contactid</th>
+                        <td>
+                            <img src="@item.Userpicture!.Filepath" alt="..." style="width:30px;height:30px;">
+                            @if(item.Authorization != null) 
+                            { 
+                            <span class="badge rounded-pill bg-danger flex-grow-1" style="font-size:12px;">
+                                <i class="bi bi-person-fill-check"></i>
+                            </span> 
+                            }
+                        </td>
+                        <td>@item.Name</td> <td>@item.Surname</td>
+                        <td>@((item.Phonenumber == null ? "Не установлено" : item.Phonenumber))</td>
+                        <td>@item.Emailaddress</td> <td>@item.Gendertype.Gendertypename</td>
+                        <td>@item.Lastupdate</td> <td>@item.Birthday</td>
+                        <td>
+                            <div class="w-100 d-inline-flex input-group" >
+                                @this.Html.ActionLink("Выбрать", "ContactEditor", new AdministratorModel()
+                                {
+                                    SelectedRecord = item.Contactid
+                                }, 
+                                new { style=buttonStyle, @class="btn btn-primary flex-grow-1"})
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+@*@section Scripts {
+    <script src="/_framework/blazor.server.js"></script>
+}*@
+@section Supports {
+<ul class="navbar-nav my-3 my-sm-0 my-lg-0 navbar-nav-scroll" 
+    style="--bs-scroll-height:84px;font-size:13pt;"> 
+
+    <li class="nav-item">
+        @this.Html.ActionLink("Администратор", "AdministratorPanel", new UserProfileModel () { },
+            new { @class=$"nav-link text-light border-bottom border-3" })
+    </li>    
+  
+    <li class="nav-item">
+        @this.Html.ActionLink("Контакты", "ProfileInfo", "UserProfile", new UserProfileModel { Mode = contactMode },
+            new { @class=$"nav-link text-light" })
+    </li>
+    <li class="nav-item">
+        @this.Html.ActionLink("Профиль", "ProfileInfo", "UserProfile", new UserProfileModel { Mode = settingsMode },
+            new { @class=$"nav-link text-light" })
+    </li>
+</ul>
+<div class="vr mx-3 bg-white opacity-75 d-none d-md-block" style="width:2px;"></div>
+<a class="btn btn-outline-danger d-flex my-2 my-md-0 mb-3 mb-md-0" href="~/logout" role="button">Выйти</a>
+}

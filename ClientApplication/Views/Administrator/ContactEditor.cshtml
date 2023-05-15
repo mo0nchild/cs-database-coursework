@@ -1,0 +1,24 @@
+﻿@using ClientApplication.Views.Shared;
+@model AdministratorModel
+@{ }
+
+<div class="mb-5">
+<component type="typeof(ProfilePage)" render-mode="ServerPrerendered" param-Contact="this.Model.Contact"
+    param-EditingModel="(ProfileEditingModel)this.ViewBag.EditingModel" param-ErrorMessage="this.Model.ErrorMessage"
+
+    param-SetDatingType="false" param-FormRequestLink="this.Model.FormRequestLink" param-IsReadonly="false"/>
+</div>
+@section Scripts {
+    <script src="/_framework/blazor.server.js"></script>
+}
+@section Supports {
+<ul class="navbar-nav my-3 my-sm-0 my-lg-0 navbar-nav-scroll" 
+    style="--bs-scroll-height:84px;font-size:13pt;"> 
+    <li class="nav-item">
+        @this.Html.ActionLink("В главное меню", "ProfileInfo", "UserProfile", new UserProfileModel { },
+            new { @class=$"nav-link text-light border-bottom border-3" })
+    </li>
+</ul>
+<div class="vr mx-3 bg-white opacity-75 d-none d-md-block" style="width:2px;"></div>
+<a class="btn btn-outline-danger d-flex my-2 my-md-0 mb-3 mb-md-0" href="~/logout" role="button">Выйти</a>
+}

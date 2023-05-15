@@ -55,10 +55,11 @@ namespace ClientApplication.Controllers
             }
             var profilePrinciple = new ClaimsIdentity(new List<Claim>()
             {
-                new Claim(ClaimTypes.Role, userProfile.Isadmin ? "Admin": "User"),
+                new Claim(ClaimTypes.Role, "User"),
                 new Claim(ClaimTypes.PrimarySid, userProfile.Contact.Contactid.ToString())
             }, 
             CookieAuthenticationDefaults.AuthenticationScheme);
+            if(userProfile.Isadmin) profilePrinciple.AddClaim(new Claim(ClaimTypes.Role, "Admin"));
 
             await this.HttpContext.SignInAsync(new ClaimsPrincipal(profilePrinciple));
             return base.RedirectToAction("ProfileInfo", "UserProfile");

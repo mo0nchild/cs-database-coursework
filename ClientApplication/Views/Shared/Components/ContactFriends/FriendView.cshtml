@@ -1,0 +1,24 @@
+﻿@model List<DatabaseAccess.Models.Contact>
+@{ }
+
+<div class="border-top py-3" style="overflow:scroll;max-height:250px;">
+    <table class="table">
+        <thead>
+            <tr style="color: var(--main-color);">
+                <th scope="col">Имя:</th> <th scope="col">Фамилия:</th> <th scope="col">Пол:</th>
+                <th scope="col">Email:</th> <th scope="col">Телефон:</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var item in this.Model)
+            {
+            <tr>
+                <th scope="row">@item.Name</th> <td>@item.Surname</td>
+                <td>@item.Gendertype.Gendertypename</td> <td>@item.Emailaddress</td>
+                <td>@((item.Phonenumber == null ? "Не установлено" : item.Phonenumber))</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>
+

@@ -9,7 +9,7 @@
     }
     <input id="@this.ItemId" class="form-control @((this.IsValid ? "" : "is-invalid"))" maxlength="@this.MaxLength" 
         placeholder="@this.Placeholder" type="@this.InputType" value="@this.componentValue" 
-        @onchange="@this.ChangeValue"/>
+        @onchange="@this.ChangeValue" readonly="@this.IsReadonly"/>
 </div>
 
 @code {
@@ -20,6 +20,7 @@
     [ParameterAttribute] public string Placeholder { get; set; } = string.Empty;
     [ParameterAttribute] public string InputType { get; set; } = "text";
 
+    [ParameterAttribute] public bool IsReadonly { get; set; } = default;
     [ParameterAttribute] public int MaxLength { get; set; } = 30;
     [ParameterAttribute] public bool IsValid { get; set; } = true;
 

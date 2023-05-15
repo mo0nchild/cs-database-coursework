@@ -7,7 +7,7 @@
     {
         <span class="input-group-text"><i class="@this.GroupIcon"></i></span>
     }
-    <select id="@this.ItemId" class="form-select" @onchange="@(this.ValueChangeHandler)">
+    <select id="@this.ItemId" class="form-select" @onchange="@(this.ValueChangeHandler)" disabled="@this.IsReadonly">
         @foreach(var selectedItem in this.ElementList) 
         {
             if (selectedItem == this.ComponentValue) { <option value="@selectedItem" selected>@selectedItem</option> }
@@ -16,15 +16,15 @@
     </select>
 </div>
 @code {
+    [ParameterAttribute] public string? GroupIcon { get; set; } = default;
     [ParameterAttribute] public string LabelTitle { get; set; } = string.Empty;
     [ParameterAttribute] public string ItemId { get; set; } = string.Empty;
-    [ParameterAttribute] public string? GroupIcon { get; set; } = default;
 
+    [ParameterAttribute] public bool IsReadonly { get; set; } = default;
     [ParameterAttribute, EditorRequiredAttribute]
     public List<string> ElementList { get; set; } = new();
 
     protected string componentValue = string.Empty;
-
     [ParameterAttribute] public string ComponentValue 
     { 
         get => this.componentValue; set { this.componentValue = value; }

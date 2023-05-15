@@ -21,8 +21,11 @@
 @switch(this.Model.Mode)
 {
     case UserProfileModel.PageMode.Settings:
+    <div class="my-5">
     <component type="typeof(ProfilePage)" render-mode="ServerPrerendered" param-Contact="this.Model.Contact"
-        param-EditingModel="(ProfileEditingModel)this.ViewBag.EditingModel" param-ErrorMessage="this.Model.ErrorMessage"/>
+        param-EditingModel="(ProfileEditingModel)this.ViewBag.EditingModel" param-ErrorMessage="this.Model.ErrorMessage"
+        param-FormRequestLink="this.Model.FormRequestLink"/>
+    </div>
         break;
     case UserProfileModel.PageMode.Contacts: @await this.Html.PartialAsync("ContactList", friendsList, searchingParameters);
         break;
@@ -33,6 +36,13 @@
 @section Supports {
 <ul class="navbar-nav my-3 my-sm-0 my-lg-0 navbar-nav-scroll" 
     style="--bs-scroll-height:84px;font-size:13pt;"> 
+    @if (this.ViewBag.IsAdmin)
+    {
+    <li class="nav-item">
+        @this.Html.ActionLink("Администратор", "AdministratorPanel", "Administrator", new AdministratorModel () { },
+            new { @class=$"nav-link text-light"})
+    </li>     
+    }  
     <li class="nav-item">
         @this.Html.ActionLink("Контакты", "ProfileInfo", new UserProfileModel { Mode = contactMode },
             new { @class=$"nav-link text-light {(this.Model.Mode == contactMode ? underlineClass : "")}" })

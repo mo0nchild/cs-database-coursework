@@ -17,9 +17,11 @@ namespace ClientApplication.Services
         public abstract Task<DAModels::Contact?> GetContact(int contactId, string search);
 
         public abstract Task<IDatabaseContact.ErrorStatus?> EditContact(DAModels::Contact contactModel);
-        public abstract Task<IDatabaseContact.ErrorStatus?> RemoveContact(int contactId);
+        public abstract Task<IDatabaseContact.ErrorStatus?> AddContact(DAModels::Contact contactModel,
+            int connectId, DAModels::Datingtype datingtype);
 
         public abstract Task<DAModels::Contact> InitializeContact();
+        public abstract Task<IDatabaseContact.ErrorStatus?> RemoveContact(int contactId);
         public record class ErrorStatus(string Message);
     }
     public partial class DatabaseContact : System.Object, Services.IDatabaseContact
@@ -105,11 +107,34 @@ namespace ClientApplication.Services
             return default(IDatabaseContact.ErrorStatus);
         }
 
+        public async Task<IDatabaseContact.ErrorStatus?> AddContact(DAModels::Contact contactModel, 
+            int connectId, DAModels::Datingtype datingtype)
+        {
+            IDatabaseContact.ErrorStatus? errorMessage = default(IDatabaseContact.ErrorStatus);
+            var contactRecord = new Contact() { Surname = string.Empty, Name = string.Empty, Emailaddress = string.Empty };
+           
+            contactModel.Lastupdate = DateTime.Now;
+            using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
+            {
+                contactRecord.Gendertype = await dbcontext.Gendertypes.FirstAsync();
+                contactRecord.Userpicture = await dbcontext.Userpictures.FirstAsync();
+
+                await dbcontext.Contacts.AddAsync(contactRecord); await dbcontext.SaveChangesAsync();
+                contactModel.Contactid = contactRecord.Contactid;
+            }
+            if ((errorMessage = await this.EditContact(contactModel)) != null) return errorMessage;
+            var contactId = contactModel.Contactid;
+
+            if ((errorMessage = await this.SetFriendShip(connectId, contactId, datingtype)) != null) return errorMessage;
+            return default(IDatabaseContact.ErrorStatus);
+        }
+
         public async Task<IDatabaseContact.ErrorStatus?> RemoveContact(int contactId)
         {
             using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
             {
-                
+                var result = await dbcontext.Contacts.Where(item => item.Contactid == contactId).ExecuteDeleteAsync();
+                if (result <= 0) return new IDatabaseContact.ErrorStatus("Данные не были удалены");
             }
             return default(IDatabaseContact.ErrorStatus);
         }
@@ -126,12 +151,10 @@ namespace ClientApplication.Services
                     .FirstOrDefaultAsync(item => item.Contactid == contactId2);
                 if(profile1 == null || profile2 == null) return new IDatabaseContact.ErrorStatus("Контакт не найден");
 
-                var collision1 = profile1.FriendContactid1Navigations.Where((DAModels::Friend item) => item.Contactid2
-                    == profile2.Contactid).Count();
-                var collision2 = profile2.FriendContactid1Navigations.Where((DAModels::Friend item) => item.Contactid2
-                    == profile1.Contactid).Count();
+                var collision1 = profile1.FriendContactid1Navigations.Where(item => item.Contactid2 == profile2.Contactid);
+                var collision2 = profile1.FriendContactid2Navigations.Where(item => item.Contactid1 == profile2.Contactid);
 
-                if (collision1 > 0 && collision2 > 0) return new IDatabaseContact.ErrorStatus("Контакты уже связаны");
+                Console.WriteLine($"\n\ncollision1: {collision1.Count()}, collision2: {collision2.Count()}\n");
 
                 var datingRecord = await dbcontext.Datingtypes.FirstOrDefaultAsync(item => item.Typeofdating ==
                     datingtype.Typeofdating);
@@ -144,7 +167,17 @@ namespace ClientApplication.Services
                     Contactid1 = contactId1, Contactid2 = contactId2, Datingtype = datingRecord, 
                     Starttime = DateOnly.FromDateTime(DateTime.Now)
                 };
-                await dbcontext.Friends.AddAsync(resultModel); await dbcontext.SaveChangesAsync();
+                if (collision1.Count() > 0 || collision2.Count() > 0)
+                {
+                    resultModel = (await dbcontext.Friends.FirstAsync(item => (item.Contactid1 == contactId1
+                        && item.Contactid2 == contactId2)
+                        || (item.Contactid1 == contactId2 && item.Contactid2 == contactId1)));
+
+                    resultModel.Datingtypeid = datingRecord.Datingtypeid;
+                    dbcontext.Friends.Update(resultModel); await dbcontext.SaveChangesAsync();
+                    return default(IDatabaseContact.ErrorStatus);
+                }
+                else await dbcontext.Friends.AddAsync(resultModel); await dbcontext.SaveChangesAsync();
             }
             return default(IDatabaseContact.ErrorStatus);
         }
@@ -159,19 +192,27 @@ namespace ClientApplication.Services
                     .Include(prop => prop.Employees).ThenInclude(prop => prop!.Post)
                     .Include(prop => prop.FriendContactid1Navigations).ThenInclude(prop => prop.Contactid2Navigation)
                         .ThenInclude(prop => prop.Authorization)
+                    .Include(prop => prop.FriendContactid2Navigations).ThenInclude(prop => prop.Contactid1Navigation)
+                        .ThenInclude(prop => prop.Authorization)
 
                     .Include(prop => prop.Userpicture).Include(prop => prop.Authorization)
                     .Include(prop => prop.Humanqualities).Include(prop => prop.Hobbies)
                     .Where(item => item.Contactid == contactId).FirstOrDefaultAsync())!;
 
                 if (contactModel == null) { return default(DAModels::Contact); }
-                foreach(DAModels::Friend record in contactModel.FriendContactid1Navigations)
+                await dbcontext.Datingtypes.LoadAsync();
+                await dbcontext.Gendertypes.LoadAsync();
+
+                contactModel.FriendContactid2Navigations.Select(item => new DAModels::Friend() 
+                {
+                    Contactid2Navigation = item.Contactid1Navigation, Starttime = item.Starttime,
+                    Datingtype = item.Datingtype, Friendid = item.Friendid
+                })
+                .ToImmutableList().ForEach(item => contactModel.FriendContactid1Navigations.Add(item));
+                foreach (DAModels::Friend record in contactModel.FriendContactid1Navigations)
                 {
                     await dbcontext.Userpictures.Where((DAModels::Userpicture item) => item.Userpictureid ==
                         record.Contactid2Navigation.Userpictureid).LoadAsync();
-
-                    await dbcontext.Datingtypes.Where((DAModels::Datingtype item) => item.Datingtypeid ==
-                        record.Datingtypeid).LoadAsync();
                 }
                 contactModel.FriendContactid1Navigations = contactModel.FriendContactid1Navigations
                     .Where(record => SelectionExpression(record.Contactid2Navigation)).ToList();

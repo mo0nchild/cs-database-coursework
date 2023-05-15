@@ -1,6 +1,8 @@
 ﻿using ClientApplication.Filters;
+using ClientApplication.Services;
 using ClientApplication.ViewModels;
 using DatabaseAccess;
+using DatabaseAccess.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -18,9 +20,10 @@ namespace ClientApplication.Controllers
     using DAModels = DatabaseAccess.Models;
     using ControllerLogger = ILogger<UserContactsController>;
 
-    [ControllerAttribute, RouteAttribute("contact"), AuthorizeAttribute(Policy = "DefaultUser")]
+    [ControllerAttribute, RouteAttribute(ControllerRoute), AuthorizeAttribute(Policy = "DefaultUser")]
     public partial class UserContactsController : Controller
     {
+        public const string ControllerRoute = "contact";
         protected Services.IDatabaseContact DatabaseContact { get; private set; } = default!;
         protected IDbContextFactory<DatabaseContext> DatabaseFactory { get; private set; } = default!;
 
@@ -30,11 +33,24 @@ namespace ClientApplication.Controllers
         { (this.DatabaseContact, this._logger, this.DatabaseFactory) = (dbcontact, logger, factory); }
 
         [HttpGetAttribute, RouteAttribute("buildcontact", Name = "buildcontact")]
-        public async Task<IActionResult> BuildContact(UserContactsModel? model)
+        public async Task<IActionResult> BuildContact(UserContactsModel model)
         {
-            if (model == null) model = new UserContactsModel();
-            model.Contact = await this.DatabaseContact.InitializeContact();
+            if (model.SelectedContact == default) model = new UserContactsModel() 
+            { Contact = await DatabaseContact.InitializeContact() };
+            else model.Contact = (await this.DatabaseContact.GetContact(model.SelectedContact, string.Empty))!;
 
+            model.FormRequestLink = string.Format("{0}/{1}", UserContactsController.ControllerRoute,
+                model == null ? "addcontact" : "editcontact");
+
+            if (model!.Contact == null) return base.RedirectToRoute("profile", new UserProfileModel()
+            { ErrorMessage = "Контакт не найден" });
+            else model.IsAccount = model.Contact.Authorization != null;
+
+            var authorizatedProfile = this.HttpContext.User.FindFirst(ClaimTypes.PrimarySid)!;
+            var friend = model.Contact.FriendContactid1Navigations.FirstOrDefault(item =>
+                item.Contactid2Navigation.Contactid == int.Parse(authorizatedProfile.Value));
+
+            if (friend != null) model.DatingType = friend.Datingtype!;
             this.ViewBag.EditingModel = new ProfileEditingModel();
             using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
             {
@@ -58,10 +74,49 @@ namespace ClientApplication.Controllers
         }
 
         [HttpPostAttribute, RouteAttribute("addcontact", Name = "addcontact")]
+        [ProfileModelFilter("buildcontact")]
         public async Task<IActionResult> AddContact([FromForm] DAModels::Contact contactModel,
-            [FromForm]string datingType)
+            [FromForm]string datingtype)
         {
-            return base.RedirectToRoute("buildcontact");
+            var authorizatedProfile = this.HttpContext.User.FindFirst(ClaimTypes.PrimarySid)!;
+            var resultModel = new ViewModels.UserProfileModel()
+            {
+                Mode = UserBaseModel.PageMode.Contacts, ErrorMessage = default!, HasError = default,
+            };
+            var error = await this.DatabaseContact.AddContact(contactModel, int.Parse(authorizatedProfile.Value),
+                new DAModels::Datingtype() { Typeofdating = datingtype });
+
+            if ((resultModel.ErrorMessage = error?.Message) != null) return base.RedirectToRoute("profile", resultModel);
+            resultModel.ErrorMessage = string.Format("Контакт успешно создан");
+
+            return base.RedirectToRoute("profile", resultModel);
+        }
+
+        [HttpPostAttribute, RouteAttribute("editcontact", Name = "editcontact")]
+        [ProfileModelFilter("buildcontact")]
+        public async Task<IActionResult> EditContact([FromForm] DAModels::Contact contactModel,
+            [FromForm] string datingtype)
+        {
+            var profileId = this.HttpContext.User.FindFirst(ClaimTypes.PrimarySid)!;
+            var record = await this.DatabaseContact.GetContact(contactModel.Contactid, string.Empty);
+
+            if (record == null) return base.RedirectToRoute("profile", new ViewModels.UserProfileModel()
+            { Mode = UserBaseModel.PageMode.Contacts, ErrorMessage = "Контакт не найден" });
+
+            var errorModel = default(IDatabaseContact.ErrorStatus);
+            if(record.Authorization == null && (errorModel = await this.DatabaseContact.EditContact(contactModel)) != null)
+            {
+                return base.RedirectToRoute("profile", new ViewModels.UserProfileModel()
+                { Mode = UserBaseModel.PageMode.Contacts, ErrorMessage = errorModel.Message });
+            }
+            if(datingtype != null) errorModel = await this.DatabaseContact.SetFriendShip(int.Parse(profileId.Value),
+                record.Contactid, new DAModels::Datingtype() { Typeofdating = datingtype });
+
+            if (errorModel != null) base.RedirectToRoute("buildcontact", new UserContactsModel()
+            { SelectedContact = contactModel.Contactid, ErrorMessage = errorModel.Message });
+
+            return base.RedirectToRoute("buildcontact", new UserContactsModel() 
+            { SelectedContact = contactModel.Contactid });
         }
 
         [HttpPostAttribute, RouteAttribute("referencelink", Name = "referencelink")]
@@ -89,5 +144,24 @@ namespace ClientApplication.Controllers
             { Mode = UserProfileModel.PageMode.Contacts, HasError = false, ErrorMessage = "Связь установлена" });
         }
 
+        [HttpPostAttribute, RouteAttribute("textmessage", Name = "textmessage")]
+        public async Task<IActionResult> TextMessage([FromForm] string text, int friend)
+        {
+            if(text == null) return base.RedirectToRoute("buildcontact", new UserContactsModel() { SelectedContact = friend });
+
+            var profileId = int.Parse(this.HttpContext.User.FindFirst(ClaimTypes.PrimarySid)!.Value);
+            using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
+            {
+                var friendRecord = await dbcontext.Friends.FirstAsync(item => (item.Contactid1 == profileId
+                    && item.Contactid2 == friend) || (item.Contactid2 == profileId && item.Contactid1 == friend));
+
+                dbcontext.Messages.AddRange(new DAModels::Message() 
+                { 
+                    Sendtime = DateTime.Now, Messagebody = text, Friendid = friendRecord.Friendid, Contactid = profileId
+                });
+                await dbcontext.SaveChangesAsync();
+            }
+            return base.RedirectToRoute("buildcontact", new UserContactsModel() { SelectedContact = friend });
+        }
     }
 }
