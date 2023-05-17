@@ -1,0 +1,30 @@
+﻿@model DatabaseAccess.Models.Contact;
+@{
+    var textOverflow = "overflow:hidden;white-space:nowrap;text-overflow:ellipsis";
+    var buttonStyle = "background-color:var(--main-color);border-color:var(--main-color);";
+    var userModel = new UserContactsModel() 
+    { 
+        SelectedContact = this.Model.Contactid, IsAccount = (this.Model.Authorization != null)
+    };
+}
+<div class="card-body p-3 p-sm-4"> 
+    <h5 class="card-title w-100 d-inline-flex flex-nowrap" style="color:var(--main-color);font-size:18px;">
+        <span class="w-100" style="@(textOverflow)">@(this.Model.Name)&nbsp;@(this.Model.Surname)</span>
+        @if(this.Model.Authorization != null) { 
+            <span class="badge rounded-pill bg-danger flex-grow-1" style="font-size:12px;">
+                <i class="bi bi-person-fill-check"></i>
+            </span> 
+        }
+    </h5>
+    <p class="card-text w-100 m-0" style="color:var(--main-color);font-size:14px;@(textOverflow)">
+        Отношения: @this.ViewBag.DatingType
+    </p>
+    <p class="card-text w-100 mb-0" style="@(textOverflow)"><i class="bi bi-mailbox"></i>&nbsp;@(this.Model.Emailaddress)</p>
+    <p class="card-text w-100 mb-3" style="@(textOverflow)">
+        <i class="bi bi-telephone-forward"></i>&nbsp;@((this.Model.Phonenumber == default ? "Не установлено" : this.Model.Phonenumber))
+    </p> 
+    <div class="w-100 d-inline-flex input-group" >
+        @this.Html.ActionLink("Выбрать", "BuildContact", "UserContacts", userModel, new { style=buttonStyle,
+            @class="btn btn-primary flex-grow-1"})
+    </div>
+</div>

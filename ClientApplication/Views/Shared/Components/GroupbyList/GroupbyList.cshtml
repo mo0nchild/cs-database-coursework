@@ -1,0 +1,47 @@
+﻿@using ClientApplication.ViewComponents;
+@model GroupbyListViewComponent.GroupbyListViewModel
+@{ }
+<div class="row">
+    <div class="col-12 col-md-6 mb-4 mb-md-0">
+        <div class="shadow-sm border border-secondary p-3" style="border-radius: 16px;">
+            <label class="form-label mb-2 fs-5 fw-semibold" style="color:var(--main-color);">
+                <i class="bi bi-clipboard-check"></i>&nbsp;Список групп по гендеру:
+            </label>
+            <div class="border-top" style="overflow:scroll;max-height:600px;">
+                <table class="table">
+                    <thead style="color:var(--main-color);">
+                        <tr><th scope="col">#</th> <th scope="col">Название типа:</th><th scope="col">Значение:</th></tr>
+                    </thead>
+                    <tbody>
+                    @for(var index = 0; index < this.Model.GenderGroups.Count; index++)
+                    {
+                        var record = this.Model.GenderGroups[index];
+                        <tr> <th scope="row">@(index + 1)</th> <td> @record.GroupName </td> <td> @record.GroupValue </td> </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="shadow-sm border border-secondary p-3" style="border-radius: 16px;">
+            <label class="form-label mb-2 fs-5 fw-semibold" style="color:var(--main-color);">
+                <i class="bi bi-clipboard-check"></i>&nbsp;Список групп по типу контакта:
+            </label>
+            <div class="border-top" style="overflow:scroll;max-height:600px;">
+                <table class="table">
+                    <thead style="color:var(--main-color);">
+                        <tr><th scope="col">#</th> <th scope="col">Название типа:</th><th scope="col">Значение:</th></tr>
+                    </thead>
+                    <tbody>
+                    @for(var index = 0; index < this.Model.AccountTypeGroups.Count; index++)
+                    {
+                        var record = this.Model.AccountTypeGroups[index];
+                        <tr> <th scope="row">@(index + 1)</th> <td> @record.GroupName </td> <td> @record.GroupValue </td> </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

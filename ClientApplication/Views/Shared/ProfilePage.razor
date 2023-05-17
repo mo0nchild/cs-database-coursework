@@ -1,12 +1,15 @@
 ﻿@using DAModels = DatabaseAccess.Models;
+@using DatabaseAccess;
 @using Microsoft.AspNetCore.Components.Forms;
 @using Microsoft.AspNetCore.Components.Web;
+@using Microsoft.EntityFrameworkCore;
 @using ViewModels;
 @using ClientApplication.Views.Shared.Components;
 
 @inject NavigationManager NavigationManager
 @inject ILogger<ProfilePage> Logger
 @inject IHttpClientFactory HttpFactory
+@inject IDbContextFactory<DatabaseContext> DatabaseFactory
 
 <div class="container p-0">
     @if(this.ErrorMessage != null)
@@ -323,7 +326,7 @@
 </div>
 @code {
     [ParameterAttribute] public DAModels::Contact Contact { get; set; } = default!;
-    [ParameterAttribute] public ProfileEditingModel EditingModel { get; set; } = default!;
+    protected virtual ProfileEditingModel EditingModel { get; set; } = default!;
 
     [ParameterAttribute] public string? ErrorMessage { get; set; } = default!;
     [ParameterAttribute] public bool IsReadonly { get; set; } = default!;
@@ -422,9 +425,21 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await base.OnInitializedAsync();
+        base.OnInitialized();
+        this.EditingModel = new ProfileEditingModel();
+        using (var dbcontext = this.DatabaseFactory.CreateDbContext())
+        {
+            this.EditingModel.GenderTypes = dbcontext.Gendertypes.ToList();
+            this.EditingModel.Cities = dbcontext.Cities.ToList();
+            this.EditingModel.Pictures = dbcontext.Userpictures.ToList();
+
+            this.EditingModel.QualityTypes = dbcontext.Humanqualities.ToList();
+            this.EditingModel.HobbyTypes = dbcontext.Hobbies.ToList();
+            this.EditingModel.Postes = dbcontext.Posts.ToList();
+            this.EditingModel.Datingtypes = dbcontext.Datingtypes.ToList();
+        }
         this.EditingModel.Cities.Insert(0, new() { Cityname = "Не установлено", Country = "Не установлено" });
 
         this.Contact.Location ??= new DAModels.Location() { City = this.EditingModel.Cities[0] };

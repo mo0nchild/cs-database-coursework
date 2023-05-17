@@ -35,47 +35,30 @@ namespace ClientApplication.Controllers
         [HttpGetAttribute, RouteAttribute("buildcontact", Name = "buildcontact")]
         public async Task<IActionResult> BuildContact(UserContactsModel model)
         {
+            var authorizatedProfile = this.HttpContext.User.FindFirst(ClaimTypes.PrimarySid)!;
+
             if (model.SelectedContact == default) model.Contact = await DatabaseContact.InitializeContact();
             else model.Contact = (await this.DatabaseContact.GetContact(model.SelectedContact, string.Empty))!;
 
-            Console.WriteLine($"\nselected: {model.SelectedContact}");
-            Console.WriteLine($"\nmodel error: {model.ErrorMessage}");
+
+            foreach(var item in model.Contact.Employees)
+            {
+                Console.WriteLine($"\n{item.Companyname}");
+            }
 
             model.FormRequestLink = string.Format("{0}/{1}", UserContactsController.ControllerRoute,
                 model.SelectedContact == default ? "addcontact" : "editcontact");
-
-            Console.WriteLine($"\nFormRequestLink:{model.FormRequestLink}");
 
             if (model!.Contact == null) return base.RedirectToRoute("profile", new UserProfileModel()
             { ErrorMessage = "Контакт не найден" });
             else model.IsAccount = model.Contact.Authorization != null;
 
-            Console.WriteLine($"\nerror: {model.ErrorMessage}");
-
-            var authorizatedProfile = this.HttpContext.User.FindFirst(ClaimTypes.PrimarySid)!;
             var friend = model.Contact.FriendContactid1Navigations.FirstOrDefault(item =>
                 item.Contactid2Navigation.Contactid == int.Parse(authorizatedProfile.Value));
-
             if (friend != null) model.DatingType = friend.Datingtype!;
-            this.ViewBag.EditingModel = new ProfileEditingModel();
-            using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
-            {
-                this.ViewBag.EditingModel.GenderTypes = await dbcontext.Gendertypes.ToListAsync();
-                this.ViewBag.EditingModel.Cities = await dbcontext.Cities.ToListAsync();
-                this.ViewBag.EditingModel.Pictures = await dbcontext.Userpictures.ToListAsync();
 
-                this.ViewBag.EditingModel.QualityTypes = await dbcontext.Humanqualities.ToListAsync();
-                this.ViewBag.EditingModel.HobbyTypes = await dbcontext.Hobbies.ToListAsync();
-                this.ViewBag.EditingModel.Postes = await dbcontext.Posts.ToListAsync();
-                this.ViewBag.EditingModel.Datingtypes = await dbcontext.Datingtypes.ToListAsync();
-            }
-            string viewbagSerialize = JsonConvert.SerializeObject(this.ViewBag.EditingModel,
-                 new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
-
-            string modelSerialize = JsonConvert.SerializeObject(model, new JsonSerializerSettings() 
+            var modelSerialize = JsonConvert.SerializeObject(model, new JsonSerializerSettings() 
                 { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
-
-            this.ViewBag.EditingModel = JsonConvert.DeserializeObject<ProfileEditingModel>(viewbagSerialize);
             return base.View(JsonConvert.DeserializeObject<UserContactsModel>(modelSerialize));
         }
 

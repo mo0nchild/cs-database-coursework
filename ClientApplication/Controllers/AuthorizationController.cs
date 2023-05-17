@@ -68,7 +68,7 @@ namespace ClientApplication.Controllers
         {
             foreach (var propertyValue in new[] { auth.Login, auth.Password, user.Surname, user.Name })
             {
-                if (propertyValue != null && Regex.IsMatch(propertyValue, @"[А-Яа-я\w]{5,}")) continue;
+                if (propertyValue != null && Regex.IsMatch(propertyValue, @"[А-Яа-я\w]{4,}")) continue;
                 return new ViewModels.AuthorizationModel(true)
                 {
                     ErrorCause = @$"Данные неверно введены{(propertyValue == null ? "" : $": {propertyValue}")}",

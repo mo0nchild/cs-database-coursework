@@ -1,0 +1,26 @@
+﻿@model List<DatabaseAccess.Models.Datingtype>
+@{
+    var datingTypes = new SelectList(this.Model.Select(item => item.Typeofdating).ToList());
+}
+<div class="shadow-sm border border-secondary p-4" style="border-radius: 10px;">
+
+    <label class="form-label" style="color:var(--main-color);">Строка для добавления контакта через ссылку:</label>
+    @using (this.Html.BeginForm("UseReferenceLink", "UserContacts", FormMethod.Post, new { @class="d-flex flex-row mb-3"}))
+    {
+    <div class="d-flex input-group flex-grow-1">
+        <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+        @this.Html.TextBox("link", "", new { @class="form-control", placeholder="Ссылка контакта/Email", maxlength="100", style="flex:2;" })
+        @this.Html.DropDownList("datingtype", datingTypes, new { @class="form-select", style="flex:1;" })
+    </div>
+    <div class="d-flex mx-2">
+        <button type="submit" class="btn btn-success form-control" 
+            style="background-color:var(--main-color);border-color:var(--main-color);"> <i class="bi bi-plus-circle"></i>
+        </button>
+    </div>
+    }
+    <div class="d-flex input-group flex-grow-1">
+        <span class="input-group-text flex-grow-1">Создать новый контакт: </span>
+        @this.Html.ActionLink("Начать", "BuildContact", "UserContacts", null, new { @class="form-control btn btn-primary", 
+            placeholder="Ссылка контакта/Email", style="background-color:var(--main-color);border-color:var(--main-color);" })
+    </div>
+</div>

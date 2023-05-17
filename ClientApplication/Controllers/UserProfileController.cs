@@ -23,28 +23,23 @@ namespace ClientApplication.Controllers
     {
         public const string ControllerRoute = "user";
         protected Services.IDatabaseContact DatabaseContact { get; private set; } = default!;
-        protected IDbContextFactory<DatabaseContext> DatabaseFactory { get; private set; } = default!;
 
         protected readonly ILogger<UserProfileController> _logger = default!;
-        public UserProfileController(Services.IDatabaseContact dbcontact, ControllerLogger logger, 
-            IDbContextFactory<DatabaseContext> factory) : base() 
-            { (this.DatabaseContact, this._logger, this.DatabaseFactory) = (dbcontact, logger, factory); }
+        public UserProfileController(Services.IDatabaseContact dbcontact, ControllerLogger logger) : base() 
+        { (this.DatabaseContact, this._logger) = (dbcontact, logger); }
 
         [HttpGetAttribute, RouteAttribute("profile", Name = "profile")]
         public async Task<IActionResult> ProfileInfo(UserProfileModel? model)
         {
             var authorizatedProfile = this.HttpContext.User.FindFirst(ClaimTypes.PrimarySid)!;
-            this.ViewBag.IsAdmin = this.HttpContext.User.FindAll(ClaimTypes.Role)
-                .Where(item => item.Value == "Admin").Count() > 0;
+            this.ViewBag.IsAdmin = HttpContext.User.FindAll(ClaimTypes.Role).Where(item => item.Value == "Admin").Count() > 0;
             if (model == null) model = new UserProfileModel();
 
             model.SearchQuery = model.SearchQuery == default ? default! : model.SearchQuery.Replace('+', ' ').Trim();
             model.FormRequestLink = $"{UserProfileController.ControllerRoute}/profileupdate";
             model.Contact = (await this.DatabaseContact.GetContact(int.Parse(authorizatedProfile.Value), model.SearchQuery))!;
 
-            this.ViewBag.EditingModel = new ProfileEditingModel();
             if (model.Contact == null) { return base.LocalRedirect("/logout"); }
-
             model.Contact.FriendContactid1Navigations = model.Contact.FriendContactid1Navigations
                 .Where(delegate (DAModels::Friend record)
             {
@@ -73,24 +68,8 @@ namespace ClientApplication.Controllers
             })
             .Skip(model.CurrentPage * model.RecordOnPage).Take(model.RecordOnPage).ToImmutableList();
 
-            using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
-            {
-                this.ViewBag.EditingModel.GenderTypes = await dbcontext.Gendertypes.ToListAsync();
-                this.ViewBag.EditingModel.Cities = await dbcontext.Cities.ToListAsync();
-                this.ViewBag.EditingModel.Pictures = await dbcontext.Userpictures.ToListAsync();
-
-                this.ViewBag.EditingModel.QualityTypes = await dbcontext.Humanqualities.ToListAsync();
-                this.ViewBag.EditingModel.HobbyTypes = await dbcontext.Hobbies.ToListAsync();
-                this.ViewBag.EditingModel.Postes = await dbcontext.Posts.ToListAsync();
-                this.ViewBag.EditingModel.Datingtypes = await dbcontext.Datingtypes.ToListAsync();
-            }
-            string viewbagSerialize = JsonConvert.SerializeObject(this.ViewBag.EditingModel,
-                 new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
-
             string modelSerialize = JsonConvert.SerializeObject(model,
                  new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
-
-            this.ViewBag.EditingModel = JsonConvert.DeserializeObject<ProfileEditingModel>(viewbagSerialize);
             return base.View(JsonConvert.DeserializeObject<UserProfileModel>(modelSerialize));
         }
 

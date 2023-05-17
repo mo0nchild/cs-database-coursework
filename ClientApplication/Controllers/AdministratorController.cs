@@ -18,7 +18,6 @@ namespace ClientApplication.Controllers
     public partial class AdministratorController : Controller
     {
         public const string ControllerRoute = "admin";
-
         protected Services.IDatabaseContact DatabaseContact { get; private set; } = default!;
         protected IDbContextFactory<DatabaseContext> DatabaseFactory { get; private set; } = default!;
 
@@ -67,25 +66,9 @@ namespace ClientApplication.Controllers
             if (model.Contact == null) return base.RedirectToRoute("profile", new ViewModels.UserProfileModel()
             { Mode = UserBaseModel.PageMode.Contacts, ErrorMessage = "Контакт не найден" });
 
-            this.ViewBag.EditingModel = new ProfileEditingModel();
-            using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
-            {
-                this.ViewBag.EditingModel.GenderTypes = await dbcontext.Gendertypes.ToListAsync();
-                this.ViewBag.EditingModel.Cities = await dbcontext.Cities.ToListAsync();
-                this.ViewBag.EditingModel.Pictures = await dbcontext.Userpictures.ToListAsync();
-
-                this.ViewBag.EditingModel.QualityTypes = await dbcontext.Humanqualities.ToListAsync();
-                this.ViewBag.EditingModel.HobbyTypes = await dbcontext.Hobbies.ToListAsync();
-                this.ViewBag.EditingModel.Postes = await dbcontext.Posts.ToListAsync();
-                this.ViewBag.EditingModel.Datingtypes = await dbcontext.Datingtypes.ToListAsync();
-            }
-            string viewbagSerialize = JsonConvert.SerializeObject(this.ViewBag.EditingModel,
-                 new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
-
             string modelSerialize = JsonConvert.SerializeObject(model, new JsonSerializerSettings()
             { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
 
-            this.ViewBag.EditingModel = JsonConvert.DeserializeObject<ProfileEditingModel>(viewbagSerialize);
             return base.View(JsonConvert.DeserializeObject<AdministratorModel>(modelSerialize));
         }
 

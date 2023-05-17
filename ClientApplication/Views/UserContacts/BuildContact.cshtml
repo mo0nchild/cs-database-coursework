@@ -55,9 +55,7 @@
 </div>
 <div class="mb-5">
 <component type="typeof(ProfilePage)" render-mode="ServerPrerendered" param-Contact="this.Model.Contact"
-    param-EditingModel="(ProfileEditingModel)this.ViewBag.EditingModel" param-ErrorMessage="this.Model.ErrorMessage"
-
-    param-SetDatingType="true" param-FormRequestLink="this.Model.FormRequestLink" 
+    param-ErrorMessage="this.Model.ErrorMessage" param-SetDatingType="true" param-FormRequestLink="this.Model.FormRequestLink" 
     param-IsReadonly="@this.Model.IsAccount" param-DatingType="@this.Model.DatingType"/>
 </div>
 @section Scripts {
@@ -75,5 +73,10 @@
     </li>
 </ul>
 <div class="vr mx-3 bg-white opacity-75 d-none d-md-block" style="width:2px;"></div>
-<a class="btn btn-outline-danger d-flex my-2 my-md-0 mb-3 mb-md-0" href="~/logout" role="button">Выйти</a>
+<div class="d-flex flex-row my-2 my-md-0 mb-3 mb-md-0 align-items-center">
+    @await this.Component.InvokeAsync("ProfileIcon")
+    <a class="btn btn-danger mx-2 flex-grow-1" style="height:40px;" href="~/logout" role="button">
+        <i class="bi bi-door-open"></i>&nbsp;Выйти
+    </a>
+</div>
 }

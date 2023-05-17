@@ -12,9 +12,8 @@
 
     var buttonStyle = "background-color:var(--main-color);border-color:var(--main-color);";
 }
-
 <div class="container my-5 p-0">
-    <div class="row shadow-sm border border-secondary p-3" style="border-radius:16px;">
+    <div class="row mb-4 shadow-sm border border-secondary p-3 mx-1" style="border-radius:16px;">
         <label class="form-label mb-2 fs-5 fw-semibold" style="color:var(--main-color);">
             <i class="bi bi-clipboard-check"></i>&nbsp;Список контактов в системе:
         </label>
@@ -93,6 +92,7 @@
         </div>
 
     </div>
+    @await this.Component.InvokeAsync("GroupbyList")
 </div>
 
 @*@section Scripts {
@@ -117,5 +117,10 @@
     </li>
 </ul>
 <div class="vr mx-3 bg-white opacity-75 d-none d-md-block" style="width:2px;"></div>
-<a class="btn btn-outline-danger d-flex my-2 my-md-0 mb-3 mb-md-0" href="~/logout" role="button">Выйти</a>
+<div class="d-flex flex-row my-2 my-md-0 mb-3 mb-md-0 align-items-center">
+    @await this.Component.InvokeAsync("ProfileIcon")
+    <a class="btn btn-danger mx-2 flex-grow-1" style="height:40px;" href="~/logout" role="button">
+        <i class="bi bi-door-open"></i>&nbsp;Выйти
+    </a>
+</div>
 }

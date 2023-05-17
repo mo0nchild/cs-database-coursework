@@ -45,7 +45,7 @@ namespace DatabaseAccess
             public bool IsEnabled(LogLevel logLevel) => this.CurrentConfig().LogLevelColorMap.ContainsKey(logLevel);
             public void Dispose() { }
 
-            public /*async*/ void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, 
+            public async void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, 
                 Func<TState, Exception?, string> formatter)
             {
                 var timestamp_value = string.Format("\n[DateTime]: [{0}]", DateTime.UtcNow);
