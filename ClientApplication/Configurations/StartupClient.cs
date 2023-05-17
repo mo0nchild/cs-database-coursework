@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using ClientApplication.Services;
+using ClientApplication.Middleware;
 
 namespace ClientApplication.Configurations
 {
@@ -21,7 +22,7 @@ namespace ClientApplication.Configurations
         }
         protected override void ConfigureServices(IServiceCollection services)
         {
-            services.AddRazorPages(); services.AddServerSideBlazor(); services.AddHttpClient();
+            services.AddRazorPages(); services.AddServerSideBlazor(); services.AddHttpClient(); services.AddSignalR();
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie((options) => 
             {
                 options.AccessDeniedPath = new PathString("/authorization"); 
@@ -44,9 +45,9 @@ namespace ClientApplication.Configurations
                 { new DatabaseContextFactory.DatabaseConfigure(converted_options!).ConfigureOptions(); }
             });
             services.AddSignalR(options => options.MaximumReceiveMessageSize = 102400000L);
-            services.AddTransient<Services.IDatabaseContact, Services.DatabaseContact>();
-            services.AddTransient<Services.IDocumentContact, Services.DocumentContact>();
-            services.AddTransient<Services.IEmailTransfer, Services.EmailTransfer>();
+            services.AddTransient<Services.IDatabaseContact, Services.DatabaseContact>()
+                .AddTransient<Services.IEmailTransfer, Services.EmailTransfer>()
+                .AddTransient<Services.IDocumentContact, Services.DocumentContact>();
         }
         protected override void ConfigureApplication(WebApplication application, IWebHostEnvironment env)
         {
@@ -65,7 +66,7 @@ namespace ClientApplication.Configurations
                 route_builder.MapControllers();
                 route_builder.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
-            application.MapBlazorHub();
+            application.MapBlazorHub(); application.MapHub<ContactMessagerHub>("/chathub");
         }
     }
 }

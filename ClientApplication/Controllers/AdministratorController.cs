@@ -43,7 +43,6 @@ namespace ClientApplication.Controllers
                     "Все контакты" => true, "Созданные" => item.Authorization == null,
                     "Аккаунты" => item.Authorization != null, _ => true,
                 }).ToList();
-
                 model.ContactsList = (model.SortingType switch
                 {
                     "Без сортировки" => model.ContactsList.OrderBy(item => item.Contactid),

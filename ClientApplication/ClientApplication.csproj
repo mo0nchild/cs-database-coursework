@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="6.2.4" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.16" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.5" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="7.0.5" />
     <PackageReference Include="Microsoft.Office.Interop.Word" Version="15.0.4797.1004" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

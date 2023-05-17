@@ -1,8 +1,13 @@
 ﻿@using ClientApplication.Views.Shared;
+@using System.Security.Claims;
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
 @model ClientApplication.ViewModels.UserContactsModel
 @{
     this.ViewBag.Title = "Просмотр контакта";
     const UserProfileModel.PageMode contactMode = UserProfileModel.PageMode.Contacts;
+    
+    var profileId = int.Parse(this.Context.User.FindFirst(ClaimTypes.PrimarySid)!.Value);
 }
 <div class="container p-0 mt-5 mb-4">
     <div class="row shadow-sm border border-secondary p-3 mx-1 mb-4" style="border-radius:12px;">
@@ -48,6 +53,8 @@
                     style="background-color:var(--main-color);border-color:var(--main-color);"/>
                 }    
             </div>
+            @*<component type="typeof(ContactMessager)" render-mode="ServerPrerendered" param-Contactid="this.Model.Contact.Contactid"
+                param-Profileid="profileId"/>*@
         </div>
     </div>
     
@@ -61,7 +68,10 @@
 @section Scripts {
     <script src="/_framework/blazor.server.js"></script>
     <script type="text/javascript">
-        var objDiv = document.getElementById("messanger"); objDiv.scrollTop = objDiv.scrollHeight;
+        function scrollToBottom() {
+            var objDiv = document.getElementById("messanger"); objDiv.scrollTop = objDiv.scrollHeight;
+        }
+        scrollToBottom();
     </script>
 }
 @section Supports {

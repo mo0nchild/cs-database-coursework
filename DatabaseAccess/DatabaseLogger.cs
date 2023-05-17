@@ -49,18 +49,18 @@ namespace DatabaseAccess
                 Func<TState, Exception?, string> formatter)
             {
                 var timestamp_value = string.Format("\n[DateTime]: [{0}]", DateTime.UtcNow);
-                //Console.WriteLine(timestamp_value);
+                Console.WriteLine(timestamp_value);
 
-                //var filepath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, this.CurrentConfig().FilePath);
-                //using (var file_writer = new StreamWriter(new FileStream(filepath, FileMode.Append)))
-                //{
-                //    await file_writer.WriteLineAsync(timestamp_value);
-                //    await file_writer.WriteLineAsync($"{formatter(state, exception)}\n");
-                //}
-                //Console.ForegroundColor = this.CurrentConfig().LogLevelColorMap[logLevel];
+                var filepath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, this.CurrentConfig().FilePath);
+                using (var file_writer = new StreamWriter(new FileStream(filepath, FileMode.Append)))
+                {
+                    await file_writer.WriteLineAsync(timestamp_value);
+                    await file_writer.WriteLineAsync($"{formatter(state, exception)}\n");
+                }
+                Console.ForegroundColor = this.CurrentConfig().LogLevelColorMap[logLevel];
 
-                //Console.WriteLine(formatter(state, exception));
-                //Console.ForegroundColor = ConsoleColor.White; Console.WriteLine();
+                Console.WriteLine(formatter(state, exception));
+                Console.ForegroundColor = ConsoleColor.White; Console.WriteLine();
             }
         }
         public virtual void Dispose() { this._onChangeToken?.Dispose(); }

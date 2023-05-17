@@ -1,0 +1,97 @@
+﻿@using ClientApplication.Middleware;
+@using Microsoft.EntityFrameworkCore;
+@using DatabaseAccess;
+@using DatabaseAccess.Models;
+@using Microsoft.JSInterop;
+@using Microsoft.AspNetCore.Components.Forms;
+@using Microsoft.AspNetCore.Components.Web;
+@using Microsoft.AspNetCore.SignalR.Client;
+
+@implements IAsyncDisposable
+
+@inject NavigationManager Navigation
+@inject IDbContextFactory<DatabaseContext> DatabaseFactory
+@inject IJSRuntime JS
+
+<div class="shadow-sm border border-secondary p-3 d-flex flex-column h-100" style="border-radius:12px;">
+    <label class="form-label mb-2 fs-5 fw-semibold" style="color:var(--main-color);">
+        <i class="bi bi-chat-dots"></i>&nbsp;Список сообщений:
+    </label>
+    <div id="messanger" class="border-top py-3 flex-grow-1" style="overflow:scroll;max-height:200px;">
+        @foreach(var item in this.test.MessagesList)
+        {
+        <div class="mb-3 d-flex flex-row flex-nowrap @(ChooseSide(item.Contact != null))">
+            <div class="shadow-sm border border-secondary p2 p-3" style="border-radius:16px;max-width:60%;">
+
+                <p class="m-0" style="color:var(--main-color);font-size:18px;">
+                    @((item.Contact == null ? "Вы:" : $"{item.Contact.Name}: "))
+                </p>
+                <p class="m-0">@item.Messagebody</p>
+                <p class="m-0">@item.Sendtime.TimeOfDay.ToString()</p>
+            </div>
+        </div>
+        }
+    </div>
+    <div class="d-flex flex-row my-3">
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+            <input type="text" name="text" class="form-control" placeholder="Username" @bind-value="this.MessageText"/>
+        </div>
+        <button class="btn btn-success mx-2" style="background-color:var(--main-color);border-color:var(--main-color);"
+            @onclick="SendButtonClickHandler">Отправить</button>
+    </div>   
+</div>
+@code {
+    [ParameterAttribute, EditorRequired] public int Contactid { get; set; } = default;
+    [ParameterAttribute, EditorRequired] public int Profileid { get; set; } = default;
+
+    record Parent(List<Message> MessagesList);
+    Parent test = new(new());
+
+    protected virtual string MessageText { get; set; } = string.Empty;
+
+    private HubConnection hubConnection = default!;
+    private Friend friendRecord = default!;
+    private string ChooseSide(bool check) => (check ? "justify-content-end" : "justify-content-start");
+
+    protected virtual async Task SendButtonClickHandler()
+    {
+        var messageModel = new ContactMessagerHub.ContactMessagerModel(new Message()
+        {
+            Friendid = 9/*friendRecord.Friendid*/,
+            Contactid = Profileid, Sendtime = DateTime.Now, Messagebody = this.MessageText,
+        }, 
+        /*this.friendRecord.Friendid.ToString()*/9.ToString()); 
+
+        if (hubConnection is not null) await hubConnection.SendAsync("SendMessage", messageModel);
+        this.MessageText = string.Empty;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //using(var dbcontext = this.DatabaseFactory.CreateDbContext())
+        //{
+        //    dbcontext.Contacts.Where(item => item.Contactid == Contactid).Load();
+        //    this.friendRecord = dbcontext.Friends.First(item =>  (item.Contactid1 == Contactid && item.Contactid2 == Profileid) 
+        //        || (item.Contactid2 == Contactid && item.Contactid1 == Profileid));
+
+        //    if (this.friendRecord == null) throw new Exception("Запись о связях контактов не найдена");
+        //    this.test.MessagesList = dbcontext.Messages.Where(item => item.Friendid == friendRecord.Friendid)
+        //        .OrderBy(item => item.Sendtime).ToList();
+        //} 
+        hubConnection = new HubConnectionBuilder().WithUrl(Navigation.ToAbsoluteUri("/chathub")).Build();
+
+        hubConnection.On<string>("Notify", (item) => Console.WriteLine(item));
+        hubConnection.On<Message>("GetMessage", (item) =>
+        {
+            this.test.MessagesList.Add(item);
+            Console.WriteLine($"\nitem.Messagebody: {item.Messagebody}");
+        });
+        await hubConnection.StartAsync();
+        await this.hubConnection.InvokeAsync("JoinGroup", 9.ToString()/*this.friendRecord.Friendid.ToString()*/);
+    }
+
+    //protected override async Task OnAfterRenderAsync(bool firstRender) => await JS.InvokeVoidAsync("scrollToBottom");
+    
+    public async ValueTask DisposeAsync() => await hubConnection.DisposeAsync();
+}
