@@ -23,19 +23,20 @@ namespace ClientApplication.Services
         { this.EmailAccount = emailAccount.Value; }
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
-        public virtual Task SendMessage(string messageText, string address)
+        public virtual async Task SendMessage(string messageText, string address)
         {
-            using var smtpClient = new SmtpClient("smtp.gmail.com", 587)
+            var smtpClient = new SmtpClient("smtp.gmail.com", 587)
             {
                 Credentials = new NetworkCredential(this.EmailAccount.Login, this.EmailAccount.Password),
-                EnableSsl = true
+                EnableSsl = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
             };
-            var transferFrom = new MailAddress(this.EmailAccount.Login, "Информация о контакте");
+            var transferFrom = new MailAddress(this.EmailAccount.Login, "Записная книжка");
             using var emailMessage = new MailMessage(transferFrom, new MailAddress(address))
             {
-                Subject = "Записная книжка", Body = messageText,
+                Subject = "Информация о контактах", Body = messageText,
             };
-            smtpClient.SendAsync(emailMessage, "token"); return Task.CompletedTask;
+            await smtpClient.SendMailAsync(emailMessage);
         }
         public virtual async Task SendMessage(IEmailTransfer.MessageType messageType, string address)
         {

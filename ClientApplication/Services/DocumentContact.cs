@@ -1,8 +1,9 @@
-﻿namespace ClientApplication.Services
+﻿using DatabaseAccess.Models;
+using Microsoft.AspNetCore.Authorization;
+using OfficeOpenXml;
+
+namespace ClientApplication.Services
 {
-    using DatabaseAccess.Models;
-    using Microsoft.AspNetCore.Authorization;
-    using OfficeOpenXml;
     using DAModels = DatabaseAccess.Models;
     public interface IDocumentContact : System.IDisposable
     {
