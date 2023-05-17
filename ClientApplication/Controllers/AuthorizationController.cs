@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Text.RegularExpressions;
+using ClientApplication.Services;
 
 namespace ClientApplication.Controllers
 {
@@ -92,7 +93,7 @@ namespace ClientApplication.Controllers
         [RouteAttribute("registration", Name = "registration")]
         [HttpPostAttribute]
         public async Task<IActionResult> Registration([FromForm] DAModels::Contact profile,
-            [FromForm, Bind("Login", "Password")] DAModels::Authorization authorization)
+            [FromForm, Bind("Login", "Password")] DAModels::Authorization authorization, [FromServices] IEmailTransfer email)
         {
             if (profile is null) return base.RedirectToAction("Authorization", new RouteValueDictionary()
             {["haserror"] = true, ["mode"] = AuthorizationMode.Registration, ["errorcause"] = "Данные не установлены"});
@@ -103,6 +104,7 @@ namespace ClientApplication.Controllers
                 ["haserror"] = modelValidation.HasError, ["mode"] = modelValidation.Mode, 
                 ["errorcause"] = modelValidation.ErrorCause 
             });
+            
             var referenceCollision = default(int) + 1;
             using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
             {
@@ -137,6 +139,7 @@ namespace ClientApplication.Controllers
             this._logger.LogInformation($"Account was registered: {authorization.Login}");
 
             await this.HttpContext.SignInAsync(new ClaimsPrincipal(profile_principle));
+            await email.SendMessage(IEmailTransfer.MessageType.Registration, profile.Emailaddress);
             return base.RedirectToAction("ProfileInfo", "UserProfile");
         }
 

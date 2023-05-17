@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
+using ClientApplication.Services;
 
 namespace ClientApplication.Configurations
 {
@@ -27,6 +28,7 @@ namespace ClientApplication.Configurations
                 options.LoginPath = new PathString("/authorization"); 
             });
             services.Configure<DatabaseLoggerConfiguration>(Configuration.GetSection("DatabaseLoggerConfiguration"));
+            services.Configure<IEmailTransfer.EmailAccount>(Configuration.GetSection("EmailAccess"));
             services.AddAuthorization((AuthorizationOptions options) =>
             {
                 options.AddPolicy("Administrator", policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
@@ -44,6 +46,7 @@ namespace ClientApplication.Configurations
             services.AddSignalR(options => options.MaximumReceiveMessageSize = 102400000L);
             services.AddTransient<Services.IDatabaseContact, Services.DatabaseContact>();
             services.AddTransient<Services.IDocumentContact, Services.DocumentContact>();
+            services.AddTransient<Services.IEmailTransfer, Services.EmailTransfer>();
         }
         protected override void ConfigureApplication(WebApplication application, IWebHostEnvironment env)
         {

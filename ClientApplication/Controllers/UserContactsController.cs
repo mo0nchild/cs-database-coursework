@@ -40,12 +40,6 @@ namespace ClientApplication.Controllers
             if (model.SelectedContact == default) model.Contact = await DatabaseContact.InitializeContact();
             else model.Contact = (await this.DatabaseContact.GetContact(model.SelectedContact, string.Empty))!;
 
-
-            foreach(var item in model.Contact.Employees)
-            {
-                Console.WriteLine($"\n{item.Companyname}");
-            }
-
             model.FormRequestLink = string.Format("{0}/{1}", UserContactsController.ControllerRoute,
                 model.SelectedContact == default ? "addcontact" : "editcontact");
 

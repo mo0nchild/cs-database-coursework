@@ -74,7 +74,7 @@ namespace ClientApplication.Controllers
 
         [HttpPostAttribute, RouteAttribute("updatecontact", Name = "updatecontact")]
         [ProfileModelFilter("contacteditor")]
-        public async Task<IActionResult> UpdateContact(Contact contactModel)
+        public async Task<IActionResult> UpdateContact(Contact contactModel, [FromServices] IEmailTransfer email)
         {
             IDatabaseContact.ErrorStatus? errorMessage = default!;
             var resultModel = new AdministratorModel() { };
@@ -83,6 +83,8 @@ namespace ClientApplication.Controllers
             {
                 resultModel.ErrorMessage = errorMessage.Message;
             }
+            await email.SendMessage(IEmailTransfer.MessageType.Update, contactModel.Emailaddress);
+
             return base.RedirectToRoute("contacteditor", new AdministratorModel()
             { SelectedRecord = contactModel.Contactid });
         }

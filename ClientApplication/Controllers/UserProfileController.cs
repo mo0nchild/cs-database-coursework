@@ -75,7 +75,8 @@ namespace ClientApplication.Controllers
 
         [HttpPostAttribute, RouteAttribute("profileupdate", Name = "profileupdate")]
         [ProfileModelFilter("profile")]
-        public async Task<IActionResult> ProfileInfo([FromForm] DAModels::Contact contactModel)
+        public async Task<IActionResult> ProfileInfo([FromForm] DAModels::Contact contactModel,
+            [FromServices] IEmailTransfer email)
         {
             if (contactModel is null) return base.RedirectToAction("ProfileInfo", "UserProfile");
             var errorMessage = await this.DatabaseContact.EditContact(contactModel);
@@ -84,14 +85,16 @@ namespace ClientApplication.Controllers
             {
                 HasError = true, ErrorMessage = errorMessage.Message, Mode = UserProfileModel.PageMode.Settings
             });
+            await email.SendMessage(IEmailTransfer.MessageType.Update, contactModel.Emailaddress);
             return base.RedirectToAction("ProfileInfo", "UserProfile", new UserProfileModel() 
             { Mode = UserProfileModel.PageMode.Settings });
         }
 
         [HttpGetAttribute, RouteAttribute("deletecontact/{contactid}", Name = "deletecontact")]
-        public async Task<IActionResult> RemoveContact(int contactid)
+        public async Task<IActionResult> RemoveContact(int contactid, [FromServices] IEmailTransfer email)
         {
             IDatabaseContact.ErrorStatus? errorMessage = default!;
+            var emailName = (await this.DatabaseContact.GetContact(contactid, string.Empty))!.Emailaddress;
             try {
                 if ((errorMessage = await this.DatabaseContact.RemoveContact(contactid)) != null) 
                 { base.RedirectToRoute("profile", new UserProfileModel() { ErrorMessage = errorMessage.Message }); }
@@ -100,6 +103,7 @@ namespace ClientApplication.Controllers
             { 
                 return base.RedirectToRoute("profile", new UserProfileModel() { ErrorMessage = error.Message }); 
             }
+            await email.SendMessage(IEmailTransfer.MessageType.Deleted, emailName);
             return base.RedirectToRoute("profile", new UserProfileModel() { });
         }
 
