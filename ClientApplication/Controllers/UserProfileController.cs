@@ -102,5 +102,16 @@ namespace ClientApplication.Controllers
             }
             return base.RedirectToRoute("profile", new UserProfileModel() { });
         }
+
+        [HttpGetAttribute, RouteAttribute("getdocument", Name = "getdocument")]
+        public async Task<IActionResult> GetDocument([FromServices] IDocumentContact generator)
+        {
+            var authorizationId = int.Parse(this.HttpContext.User.FindFirstValue(ClaimTypes.PrimarySid));
+            var profileModel = await this.DatabaseContact.GetContact(authorizationId, string.Empty);
+            if (profileModel == null) throw new Exception("При получении отчета: не найден профиль");
+
+            var friendsList = profileModel.FriendContactid1Navigations.Select(item => item.Contactid2Navigation);
+            return base.File(await generator.GetDocument(friendsList.ToList()), "application/octet-stream", "report.xlsx");
+        }
     }
 }

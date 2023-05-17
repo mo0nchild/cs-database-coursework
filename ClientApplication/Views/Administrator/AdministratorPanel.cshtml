@@ -19,10 +19,9 @@
         </label>
         @using (this.Html.BeginForm("AdministratorPanel", "Administrator", FormMethod.Get, new { @class="row mb-3 justify-content-end" }))
         {
-        <div class="col-12 сщд-sm-6 col-lg-6">
+        <div class="col-12 сщд-sm-6 col-lg-6 mb-2">
             <label class="form-label">Параметры сортировки:</label>
-            <div class="input-group mb-2">
-
+            <div class="input-group fs-5">
                 <span class="input-group-text"><i class="bi bi-card-list"></i></span>
                 <select id="order" name="sortingtype" class="form-select" onchange="this.form.submit()">
                     @foreach(var selectedItem in sortingTypes) 
@@ -33,18 +32,22 @@
                 </select>
             </div>
         </div>
-        <div class="col-12 сщд-sm-6 col-lg-6">
+        <div class="col-12 сщд-sm-6 col-lg-6 mb-2">
             <label class="form-label">Параметры отображения:</label>
-            <div class="input-group mb-2">
-
-                <span class="input-group-text"><i class="bi bi-person-square"></i></span>
-                <select id="profiletype" name="profiletype" class="form-select" onchange="this.form.submit()">
-                    @foreach(var selectedItem in profileTypes) 
-                    {
-                    if (selectedItem == this.Model.ProfileType) { <option value="@selectedItem" selected>@selectedItem</option> }
-                    else { <option value="@selectedItem">@selectedItem</option> }
-                    }
-                </select>
+            <div class="d-flex flex-row">
+                <div class="input-group flex-grow-1">
+                    <span class="input-group-text"><i class="bi bi-person-square"></i></span>
+                    <select id="profiletype" name="profiletype" class="form-select" onchange="this.form.submit()">
+                        @foreach(var selectedItem in profileTypes) 
+                        {
+                        if (selectedItem == this.Model.ProfileType) { <option value="@selectedItem" selected>@selectedItem</option> }
+                        else { <option value="@selectedItem">@selectedItem</option> }
+                        }
+                    </select>
+                </div>
+                <a class="btn btn-success fs-5 ms-3" style="background-color:var(--main-color);border-color:var(--main-color)"
+                    asp-asp-controller="Administrator" asp-action="GetDocument"> <i class="bi bi-file-earmark-arrow-down-fill"></i>
+                </a>
             </div>
         </div>
         }

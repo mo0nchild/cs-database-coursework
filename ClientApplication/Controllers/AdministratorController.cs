@@ -86,5 +86,16 @@ namespace ClientApplication.Controllers
             return base.RedirectToRoute("contacteditor", new AdministratorModel()
             { SelectedRecord = contactModel.Contactid });
         }
+
+        [HttpGetAttribute, RouteAttribute("getusers", Name = "getusers")]
+        public async Task<IActionResult> GetDocument([FromServices] IDocumentContact generator)
+        {
+            List<Contact> contacsList = default!;
+            using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
+            {
+                contacsList = await dbcontext.Contacts.Include(item => item.Gendertype).ToListAsync();
+            }
+            return base.File(await generator.GetDocument(contacsList), "application/octet-stream", "report.xlsx");
+        }
     }
 }

@@ -43,6 +43,7 @@ namespace ClientApplication.Configurations
             });
             services.AddSignalR(options => options.MaximumReceiveMessageSize = 102400000L);
             services.AddTransient<Services.IDatabaseContact, Services.DatabaseContact>();
+            services.AddTransient<Services.IDocumentContact, Services.DocumentContact>();
         }
         protected override void ConfigureApplication(WebApplication application, IWebHostEnvironment env)
         {
