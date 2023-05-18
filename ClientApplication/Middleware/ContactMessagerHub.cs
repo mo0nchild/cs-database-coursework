@@ -23,7 +23,7 @@ namespace ClientApplication.Middleware
             using (var dbcontext = await this.DatabaseFactory.CreateDbContextAsync())
             {
                 await dbcontext.Messages.AddAsync(messageModel.Message);
-                //await dbcontext.SaveChangesAsync();
+                await dbcontext.SaveChangesAsync();
             }
             await this.Clients.Group(messageModel.Group).SendAsync("GetMessage", messageModel.Message);
         }

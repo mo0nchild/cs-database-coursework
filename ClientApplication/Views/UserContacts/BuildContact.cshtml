@@ -35,7 +35,7 @@
             </div>
         </div>
         <div class="col-12 col-md-6">
-            <div class="shadow-sm border border-secondary p-3 d-flex flex-column h-100" 
+            @*<div class="shadow-sm border border-secondary p-3 d-flex flex-column h-100" 
                 style="border-radius:12px;">
                 <label class="form-label mb-2 fs-5 fw-semibold" style="color:var(--main-color);">
                     <i class="bi bi-chat-dots"></i>&nbsp;Список сообщений:
@@ -52,9 +52,9 @@
                 <input type="submit" class="btn btn-success mx-2" value="Отправить"
                     style="background-color:var(--main-color);border-color:var(--main-color);"/>
                 }    
-            </div>
-            @*<component type="typeof(ContactMessager)" render-mode="ServerPrerendered" param-Contactid="this.Model.Contact.Contactid"
-                param-Profileid="profileId"/>*@
+            </div>*@
+            <component type="typeof(ContactMessager)" render-mode="ServerPrerendered" param-Contactid="this.Model.Contact.Contactid"
+                param-Profileid="profileId" param-ContactName="this.Model.Contact.Name"/>
         </div>
     </div>
     

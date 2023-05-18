@@ -36,7 +36,8 @@ namespace ClientApplication.Services
             {
                 Subject = "Информация о контактах", Body = messageText,
             };
-            await smtpClient.SendMailAsync(emailMessage);
+            try { await smtpClient.SendMailAsync(emailMessage); }
+            catch(System.Exception error) {  }
         }
         public virtual async Task SendMessage(IEmailTransfer.MessageType messageType, string address)
         {

@@ -94,7 +94,8 @@ namespace ClientApplication.Controllers
         public async Task<IActionResult> RemoveContact(int contactid, [FromServices] IEmailTransfer email)
         {
             IDatabaseContact.ErrorStatus? errorMessage = default!;
-            var emailName = (await this.DatabaseContact.GetContact(contactid, string.Empty))!.Emailaddress;
+            var emailName = (await this.DatabaseContact.GetContact(contactid, string.Empty))?.Emailaddress;
+            if(emailName == null) return base.RedirectToRoute("profile");
             try {
                 if ((errorMessage = await this.DatabaseContact.RemoveContact(contactid)) != null) 
                 { base.RedirectToRoute("profile", new UserProfileModel() { ErrorMessage = errorMessage.Message }); }
